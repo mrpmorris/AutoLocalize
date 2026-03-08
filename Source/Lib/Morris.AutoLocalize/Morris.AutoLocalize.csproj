@@ -7,11 +7,11 @@
 		<Nullable>enable</Nullable>
 		<PackageId>$(MSBuildProjectName).Fody</PackageId>
 		<Title>AutoLocalize</Title>
-		<Description>A reflection-free + convention-driven registration library for dependency injection.</Description>
+		<Description>Set validation resources types/names at assembly level.</Description>
 		<PackageIcon>logo-small.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/mrpmorris/AutoLocalize</RepositoryUrl>
-		<PackageTags>Dependency injection, Dependency registration, Convention</PackageTags>
+		<PackageTags>Localization, L10N, I18N, Convention</PackageTags>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
