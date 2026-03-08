@@ -89,6 +89,7 @@ public class ModuleWeaver : BaseModuleWeaver
 		manifestBuilder.AppendLine("ErrorMessageResourceName");
 		foreach (string addedResourceName in addedResourceNamesOrdered)
 			manifestBuilder.Append(addedResourceName);
+		WriteManifestFile(manifestBuilder.ToString());
 	}
 
 	private void ScanType(
