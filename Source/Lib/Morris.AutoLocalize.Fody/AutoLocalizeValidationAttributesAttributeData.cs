@@ -19,7 +19,7 @@ internal class AutoLocalizeValidationAttributesAttributeData
 	public static AutoLocalizeValidationAttributesAttributeData FromDictionary(Dictionary<string, object?> values)
 	{
 		var errorMessageResourceTypeReference =
-			(TypeDefinition)values[nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceType)]!;
+			(TypeReference)values[nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceType)]!;
 
 		var errorMessageResourceType = errorMessageResourceTypeReference.Resolve();
 
