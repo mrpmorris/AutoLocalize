@@ -18,8 +18,10 @@ internal class AutoLocalizeValidationAttributesAttributeData
 
 	public static AutoLocalizeValidationAttributesAttributeData FromDictionary(Dictionary<string, object?> values)
 	{
-		var errorMessageResourceType =
+		var errorMessageResourceTypeReference =
 			(TypeDefinition)values[nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceType)]!;
+
+		var errorMessageResourceType = errorMessageResourceTypeReference.Resolve();
 
 		string errorMessageResourceNamePrefix = "Validation_";
 		if (values.TryGetValue(nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceNamePrefix), out object? val) && val is not null)
