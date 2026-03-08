@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<PackageIcon>logo-small.png</PackageIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Include="..\Morris.AutoLocalize\AutoLocalizeValidationAttributesAttribute.cs" Link="AutoLocalizeValidationAttributesAttribute.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\..\Images\logo-small.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FodyHelpers" Version="6.9.1" />
+	</ItemGroup>
+
+</Project>

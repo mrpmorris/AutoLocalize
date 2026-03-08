@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11519.219
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Morris.AutoLocalize", "Lib\Morris.AutoLocalize\Morris.AutoLocalize.csproj", "{F9B4F19F-B6F2-4733-88CD-0E90CEE51086}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7E1FF6BB-B4F5-4F97-B086-6F13F4229024} = {7E1FF6BB-B4F5-4F97-B086-6F13F4229024}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{B8DB20E7-F62B-4EB5-BAE9-A9EFAC09E804}"
+	ProjectSection(SolutionItems) = preProject
+		Lib\Directory.Build.props = Lib\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Morris.AutoLocalize.Fody", "Lib\Morris.AutoLocalize.Fody\Morris.AutoLocalize.Fody.csproj", "{7E1FF6BB-B4F5-4F97-B086-6F13F4229024}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Morris.AutoLocalizeTests", "Lib\Morris.AutoLocalizeTests\Morris.AutoLocalizeTests.csproj", "{4A71569F-8D98-4554-A5AA-D68DE0CD37C5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{2132FF18-34E9-41F0-AE5A-B68250676FD9}"
+	ProjectSection(SolutionItems) = preProject
+		Lib\Directory.Build.props = Lib\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{4D99F97B-C9AD-44D6-8E4F-1301744FE901}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildPipeline", "BuildPipeline", "{3B0A3997-3C05-4990-AC8F-4F3D90D1A5B7}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\release.yml = ..\.github\workflows\release.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F9B4F19F-B6F2-4733-88CD-0E90CEE51086}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9B4F19F-B6F2-4733-88CD-0E90CEE51086}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9B4F19F-B6F2-4733-88CD-0E90CEE51086}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9B4F19F-B6F2-4733-88CD-0E90CEE51086}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E1FF6BB-B4F5-4F97-B086-6F13F4229024}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E1FF6BB-B4F5-4F97-B086-6F13F4229024}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E1FF6BB-B4F5-4F97-B086-6F13F4229024}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E1FF6BB-B4F5-4F97-B086-6F13F4229024}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A71569F-8D98-4554-A5AA-D68DE0CD37C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A71569F-8D98-4554-A5AA-D68DE0CD37C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A71569F-8D98-4554-A5AA-D68DE0CD37C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A71569F-8D98-4554-A5AA-D68DE0CD37C5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F9B4F19F-B6F2-4733-88CD-0E90CEE51086} = {B8DB20E7-F62B-4EB5-BAE9-A9EFAC09E804}
+		{7E1FF6BB-B4F5-4F97-B086-6F13F4229024} = {B8DB20E7-F62B-4EB5-BAE9-A9EFAC09E804}
+		{4A71569F-8D98-4554-A5AA-D68DE0CD37C5} = {B8DB20E7-F62B-4EB5-BAE9-A9EFAC09E804}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DFEC5815-7DA2-4652-937E-024FDEB04267}
+	EndGlobalSection
+EndGlobal
