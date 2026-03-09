@@ -1,6 +1,7 @@
 ﻿using Fody;
 using Mono.Cecil;
 using Morris.AutoLocalize.Fody.Extensions;
+using Morris.AutoLocalize.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -147,11 +148,7 @@ public class ModuleWeaver : BaseModuleWeaver
 	{
 		string attributeTypeName = attribute.AttributeType.Name;
 
-		string resourceKeySuffix =
-			attributeTypeName.EndsWith("Attribute", StringComparison.Ordinal)
-			? attributeTypeName.Substring(0, attributeTypeName.Length - 9)
-			: attributeTypeName;
-
+		string resourceKeySuffix = StringHelper.GetAttributeShortName(attributeTypeName);
 		string resourceName = attributeData.ErrorMessageResourceNamePrefix + resourceKeySuffix;
 
 		TypeReference systemTypeReference = FindTypeDefinition("System.Type");

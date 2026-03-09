@@ -1,4 +1,5 @@
-﻿using Morris.AutoLocalizeTests.Extensions;
+﻿using Morris.AutoLocalize.Fody.Helpers;
+using Morris.AutoLocalizeTests.Extensions;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
@@ -120,9 +121,7 @@ internal class AssemblyHelper
 		memberActualNumberOfAffectedAttributes = 0;
 		foreach(ValidationAttribute validationAttribute in validationAttributes)
 		{
-			string name = validationAttribute.GetType().Name;
-			if (name.EndsWith("Attribute", StringComparison.Ordinal))
-				name = name.Substring(0, name.Length - 9);
+			string name = StringHelper.GetAttributeShortName(validationAttribute.GetType().Name);
 
 			string resourceName = $"{resourceNamePrefix}{name}";
 			if (validationAttribute.ErrorMessageResourceType == resourceType
