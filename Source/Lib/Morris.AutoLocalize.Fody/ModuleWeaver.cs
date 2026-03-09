@@ -45,7 +45,7 @@ public class ModuleWeaver : BaseModuleWeaver
 		ModuleDefinition.Assembly.CustomAttributes.Remove(attribute);
 
 		Dictionary<string, object?> values = attribute.GetValues();
-		return AutoLocalizeValidationAttributesAttributeData.FromDictionary(values);
+		return AutoLocalizeValidationAttributesAttributeData.FromDictionary(ModuleDefinition, values);
 	}
 
 	private TypeDefinition? GetValidationAttributeType()
@@ -119,12 +119,12 @@ public class ModuleWeaver : BaseModuleWeaver
 			memberDefinition
 			.CustomAttributes
 			.Select(x => new
-			{
-				TypeDefinition = x.AttributeType.Resolve(),
-				CustomAttribute = x
-			}
+				{
+					TypeReference = x.AttributeType,
+					CustomAttribute = x
+				}
 			)
-			.Where(x => x.TypeDefinition.IsAssignableTo(validationAttributeType))
+			.Where(x => x.TypeReference.IsAssignableTo(validationAttributeType))
 			.Where(x =>
 				{
 					Dictionary<string, object?> values = x.CustomAttribute.GetValues();

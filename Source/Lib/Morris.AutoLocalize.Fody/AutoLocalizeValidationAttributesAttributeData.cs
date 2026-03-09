@@ -16,10 +16,13 @@ internal class AutoLocalizeValidationAttributesAttributeData
 		ErrorMessageResourceNamePrefix = errorMessageResourceNamePrefix;
 	}
 
-	public static AutoLocalizeValidationAttributesAttributeData FromDictionary(Dictionary<string, object?> values)
+	public static AutoLocalizeValidationAttributesAttributeData FromDictionary(
+		ModuleDefinition moduleDefinition,
+		Dictionary<string, object?> values)
 	{
 		var errorMessageResourceType =
 			(TypeReference)values[nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceType)]!;
+		errorMessageResourceType = moduleDefinition.ImportReference(errorMessageResourceType);
 
 		string errorMessageResourceNamePrefix = "Validation_";
 		if (values.TryGetValue(nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceNamePrefix), out object? val) && val is not null)
