@@ -7,7 +7,7 @@ internal static class FodyTestResultExtensions
 {
 	public static void AssertNoDiagnosticsOutput(this Fody.TestResult result)
 	{
-		if (result.Errors.Count + result.Warnings.Count + result.Messages.Count == 0)
+		if (result.Errors.Count + result.Warnings.Count == 0)
 			return;
 
 		var builder = new StringBuilder();
