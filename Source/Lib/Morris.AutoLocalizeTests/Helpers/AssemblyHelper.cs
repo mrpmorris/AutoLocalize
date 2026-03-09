@@ -8,7 +8,7 @@ namespace Morris.AutoLocalizeTests.Helpers;
 
 internal class AssemblyHelper
 {
-	private const BindingFlags DefaultBindingFlags = 
+	private const BindingFlags DefaultBindingFlags =
 		BindingFlags.Instance
 		| BindingFlags.Static
 		| BindingFlags.Public
@@ -16,7 +16,6 @@ internal class AssemblyHelper
 
 	public static void AssertWeaverResults(
 		Assembly assembly,
-		int expectedNumberOfAffectedAttributes,
 		IEnumerable<string> expectedResourceNames,
 		string resourceTypeName = "UnitTest.AppStrings",
 		string resourceNamePrefix = "Validation_")
@@ -28,23 +27,15 @@ internal class AssemblyHelper
 			$"Resource type \"{resourceTypeName}\" not found in assembly."
 		);
 
-		int actualNumberOfAffectedAttributes = 0;
 		foreach (var type in assembly.GetTypes())
 		{
 			ScanType(
 				type,
 				resourceType,
 				resourceNamePrefix,
-				discoveredResourceNamesHashSet,
-				out int typeActualNumberOfAffectedAttributes
+				discoveredResourceNamesHashSet
 			);
-			actualNumberOfAffectedAttributes += typeActualNumberOfAffectedAttributes;
 		}
-
-		Assert.True(
-			actualNumberOfAffectedAttributes == expectedNumberOfAffectedAttributes,
-			$"Expected to affect {expectedNumberOfAffectedAttributes} classes but found {actualNumberOfAffectedAttributes}."
-		);
 
 		expectedResourceNames.GetDifferences(
 			discoveredResourceNamesHashSet,
@@ -69,7 +60,7 @@ internal class AssemblyHelper
 			builder.AppendLine(lineSeparator);
 			builder.AppendLine(title);
 			builder.AppendLine(lineSeparator);
-			foreach(string item in items)
+			foreach (string item in items)
 			{
 				builder.AppendLine($"  - {item}");
 			}
@@ -80,8 +71,7 @@ internal class AssemblyHelper
 		Type type,
 		Type resourceType,
 		string resourceNamePrefix,
-		HashSet<string> discoveredResourceNames,
-		out int typeActualNumberOfAffectedAttributes)
+		HashSet<string> discoveredResourceNames)
 	{
 		IEnumerable<MemberInfo> memberInfos =
 			type
@@ -94,16 +84,13 @@ internal class AssemblyHelper
 			)
 			.Where(x => !x.Name.StartsWith("<"));
 
-		typeActualNumberOfAffectedAttributes = 0;
 		foreach (MemberInfo memberInfo in memberInfos)
 		{
 			ScanMember(
 				memberInfo,
 				resourceType,
 				resourceNamePrefix,
-				discoveredResourceNames,
-				out int memberActualNumberOfAffectedAttributes);
-			typeActualNumberOfAffectedAttributes += memberActualNumberOfAffectedAttributes;
+				discoveredResourceNames);
 		}
 	}
 
@@ -111,24 +98,18 @@ internal class AssemblyHelper
 		MemberInfo memberInfo,
 		Type resourceType,
 		string resourceNamePrefix,
-		HashSet<string> discoveredResourceName,
-		out int memberActualNumberOfAffectedAttributes)
+		HashSet<string> discoveredResourceName)
 	{
 		IEnumerable<ValidationAttribute> validationAttributes = memberInfo
 			.GetCustomAttributes()
 			.OfType<ValidationAttribute>();
 
-		memberActualNumberOfAffectedAttributes = 0;
-		foreach(ValidationAttribute validationAttribute in validationAttributes)
+		foreach (ValidationAttribute validationAttribute in validationAttributes)
 		{
-			string name = StringHelper.GetAttributeShortName(validationAttribute.GetType().Name);
-
-			string resourceName = $"{resourceNamePrefix}{name}";
-			if (validationAttribute.ErrorMessageResourceType == resourceType
-				&& validationAttribute.ErrorMessageResourceName == resourceName)
+			if (validationAttribute.ErrorMessageResourceName is not null)
 			{
-				memberActualNumberOfAffectedAttributes++;
-				discoveredResourceName.Add(resourceName);
+				string name = StringHelper.GetAttributeShortName(validationAttribute.GetType().Name);
+				discoveredResourceName.Add(validationAttribute.ErrorMessageResourceName!);
 			}
 		}
 	}

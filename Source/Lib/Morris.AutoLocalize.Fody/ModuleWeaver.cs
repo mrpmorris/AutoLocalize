@@ -115,65 +115,73 @@ public class ModuleWeaver : BaseModuleWeaver
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		IMemberDefinition memberDefinition)
 	{
-		IEnumerable<CustomAttribute> validationAttributes =
+		IEnumerable<ValidationAttributeInfo> validationAttributes =
 			memberDefinition
 			.CustomAttributes
+			.Where(x => x.AttributeType.IsAssignableTo(validationAttributeType))
 			.Select(x => new
-				{
-					TypeReference = x.AttributeType,
-					CustomAttribute = x
-				}
+			{
+				ValidationAttribute = x,
+				AttributeValues = x.GetValues()
+			}
 			)
-			.Where(x => x.TypeReference.IsAssignableTo(validationAttributeType))
-			.Where(x =>
-				{
-					Dictionary<string, object?> values = x.CustomAttribute.GetValues();
-					values.TryGetValue("ErrorMessageResourceType", out object? errorMessageResourceType);
-					values.TryGetValue("ErrorMessageResourceName", out object? errorMessageResourceName);
+			.Where(x => !x.AttributeValues.TryGetValue("ErrorMessageResourceType", out object? value) || value is null)
+			.Select(x =>
+				new ValidationAttributeInfo(
+					x.ValidationAttribute,
+					x.AttributeValues.TryGetValue("ErrorMessageResourceName", out object? value) ? (string?)value : null
+				)
+			);
 
-					return errorMessageResourceType is null
-						&& errorMessageResourceName is null;
-				}
-			)
-			.Select(x => x.CustomAttribute);
-
-		foreach (CustomAttribute attribute in validationAttributes)
-			UpdateValidationAttribute(attributeData, addedResourceNames, attribute);
+		foreach (ValidationAttributeInfo validationAttribute in validationAttributes)
+			UpdateValidationAttribute(attributeData, addedResourceNames, validationAttribute);
 	}
 
 	private void UpdateValidationAttribute(
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		HashSet<string> addedResourceNames,
-		CustomAttribute attribute)
+		ValidationAttributeInfo validationAttributeInfo)
 	{
-		string attributeTypeName = attribute.AttributeType.Name;
+		string attributeTypeName = validationAttributeInfo.ValidationAttribute.AttributeType.Name;
 
 		string resourceKeySuffix = StringHelper.GetAttributeShortName(attributeTypeName);
 		string resourceName = attributeData.ErrorMessageResourceNamePrefix + resourceKeySuffix;
 
 		TypeReference systemTypeReference = FindTypeDefinition("System.Type");
 
-		attribute.Properties.Add(
-			new CustomAttributeNamedArgument(
-				"ErrorMessageResourceType",
-				new CustomAttributeArgument(
-					type: systemTypeReference,
-					value: attributeData.ErrorMessageResourceType
+		validationAttributeInfo
+			.ValidationAttribute
+			.Properties
+			.AddOrReplace(
+				new CustomAttributeNamedArgument(
+					"ErrorMessageResourceType",
+					new CustomAttributeArgument(
+						type: systemTypeReference,
+						value: attributeData.ErrorMessageResourceType
+					)
 				)
-			)
-		);
+			);
 
-		attribute.Properties.Add(
-			new CustomAttributeNamedArgument(
-				"ErrorMessageResourceName",
-				new CustomAttributeArgument(
-					type: ModuleDefinition.TypeSystem.String,
-					value: resourceName
-				)
-			)
-		);
-
-		addedResourceNames.Add(resourceName);
+		if (!string.IsNullOrEmpty(validationAttributeInfo.ErrorMessageResourceName))
+		{
+			addedResourceNames.Add(validationAttributeInfo.ErrorMessageResourceName!);
+		}
+		else
+		{
+			addedResourceNames.Add(resourceName);
+			validationAttributeInfo
+				.ValidationAttribute
+				.Properties
+				.AddOrReplace(
+					new CustomAttributeNamedArgument(
+						"ErrorMessageResourceName",
+						new CustomAttributeArgument(
+							type: ModuleDefinition.TypeSystem.String,
+							value: resourceName
+						)
+					)
+				);
+		}
 	}
 
 	private void WriteManifestFile(string content)
@@ -191,5 +199,17 @@ public class ModuleWeaver : BaseModuleWeaver
 
 		if (assemblyReference is not null)
 			ModuleDefinition.AssemblyReferences.Remove(assemblyReference);
+	}
+
+	private readonly struct ValidationAttributeInfo
+	{
+		public CustomAttribute ValidationAttribute { get; }
+		public string? ErrorMessageResourceName { get; }
+
+		public ValidationAttributeInfo(CustomAttribute validationAttribute, string? errorMessageResourceName)
+		{
+			ValidationAttribute = validationAttribute ?? throw new ArgumentNullException(nameof(validationAttribute));
+			ErrorMessageResourceName = errorMessageResourceName;
+		}
 	}
 }

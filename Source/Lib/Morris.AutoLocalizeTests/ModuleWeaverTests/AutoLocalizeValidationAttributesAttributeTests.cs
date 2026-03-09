@@ -29,7 +29,6 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedNumberOfAffectedAttributes: 1,
 			expectedResourceNames: ["Validation_Required"]
 		);
 	}
@@ -57,10 +56,51 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedNumberOfAffectedAttributes: 1,
 			expectedResourceNames: ["Validation_Required"]
 		);
 	}
+
+
+	[Fact]
+	public void WhenErrorMessageNameIsSetOnPropertyValidationAttribute_ThenItIsPreserved_AndErrorMessageResourceTypeIsUpdated()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class Person
+			{
+				[Required(ErrorMessageResourceType=null, ErrorMessageResourceName = "Bob")]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+
+		AssemblyHelper.AssertWeaverResults(
+			fodyTestResult.Assembly,
+			expectedResourceNames: ["Bob"]
+		);
+
+		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
+		Assert.NotNull(person);
+
+		PropertyInfo? nameProperty = person.GetProperty("Name");
+		Assert.NotNull(nameProperty);
+
+		var requiredAttribute = nameProperty.GetCustomAttribute<RequiredAttribute>();
+		Assert.NotNull(requiredAttribute);
+
+		Assert.Equal("Bob", requiredAttribute.ErrorMessageResourceName);
+		Assert.Equal("UnitTest.AppStrings", requiredAttribute.ErrorMessageResourceType?.FullName);
+
+	}
+
 
 	[Fact]
 	public void WhenAttributeIsUpdated_ThenItIsAccessibleViaReflection()
@@ -85,7 +125,6 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedNumberOfAffectedAttributes: 1,
 			expectedResourceNames: ["Validation_Required"]
 		);
 
@@ -125,36 +164,6 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedNumberOfAffectedAttributes: 0,
-			expectedResourceNames: []
-		);
-	}
-
-
-	[Fact]
-	public void WhenErrorMessageResourceNameIsAlreadySet_ThenNoActionIsTaken()
-	{
-		string sourceCode =
-			"""
-			using Morris.AutoLocalize;
-			using System.ComponentModel.DataAnnotations;
-
-			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
-
-			namespace UnitTest;
-
-			public class Person
-			{
-				[Required(ErrorMessageResourceName="Test")]
-				public string Name { get; set; }
-			}
-			""";
-
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
-
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedNumberOfAffectedAttributes: 0,
 			expectedResourceNames: []
 		);
 	}
