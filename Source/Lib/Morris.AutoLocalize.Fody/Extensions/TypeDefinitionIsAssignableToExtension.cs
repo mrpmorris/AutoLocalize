@@ -4,7 +4,7 @@ namespace Morris.AutoLocalize.Fody.Extensions;
 
 internal static class TypeDefinitionIsAssignableToExtension
 {
-	public static bool IsAssignableTo(this TypeDefinition candidate, TypeDefinition target) =>
-		candidate == target.Resolve()
+	public static bool IsAssignableTo(this TypeDefinition candidate, TypeReference target) =>
+		candidate.IsSameAs(target)
 		|| candidate.DescendsFrom(target);
 }

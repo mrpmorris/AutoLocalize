@@ -1,5 +1,4 @@
 ﻿using Morris.AutoLocalizeTests.Helpers;
-using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 

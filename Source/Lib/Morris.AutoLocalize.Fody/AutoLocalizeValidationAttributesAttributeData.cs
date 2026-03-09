@@ -5,11 +5,11 @@ namespace Morris.AutoLocalize.Fody;
 
 internal class AutoLocalizeValidationAttributesAttributeData
 {
-	public TypeDefinition ErrorMessageResourceType { get; }
+	public TypeReference ErrorMessageResourceType { get; }
 	public string ErrorMessageResourceNamePrefix { get; }
 
 	public AutoLocalizeValidationAttributesAttributeData(
-		TypeDefinition errorMessageResourceType,
+		TypeReference errorMessageResourceType,
 		string errorMessageResourceNamePrefix)
 	{
 		ErrorMessageResourceType = errorMessageResourceType;
@@ -18,10 +18,8 @@ internal class AutoLocalizeValidationAttributesAttributeData
 
 	public static AutoLocalizeValidationAttributesAttributeData FromDictionary(Dictionary<string, object?> values)
 	{
-		var errorMessageResourceTypeReference =
+		var errorMessageResourceType =
 			(TypeReference)values[nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceType)]!;
-
-		var errorMessageResourceType = errorMessageResourceTypeReference.Resolve();
 
 		string errorMessageResourceNamePrefix = "Validation_";
 		if (values.TryGetValue(nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceNamePrefix), out object? val) && val is not null)

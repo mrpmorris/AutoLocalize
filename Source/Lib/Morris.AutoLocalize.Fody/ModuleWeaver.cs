@@ -21,7 +21,6 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	public override void Execute()
 	{
-		WriteDebug("Executing " + GetType().FullName);
 		AutoLocalizeValidationAttributesAttributeData? attributeData = GetValidationAttributeData();
 		if (attributeData is not null)
 		{
@@ -34,7 +33,6 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	private AutoLocalizeValidationAttributesAttributeData? GetValidationAttributeData()
 	{
-		WriteDebug($"Finding {nameof(AutoLocalizeValidationAttributesAttribute)} on assembly {Path.GetFileName(AssemblyFilePath)}");
 		CustomAttribute? attribute =
 			ModuleDefinition
 			.Assembly
@@ -46,7 +44,6 @@ public class ModuleWeaver : BaseModuleWeaver
 			return null;
 		ModuleDefinition.Assembly.CustomAttributes.Remove(attribute);
 
-		WriteDebug("Attribute found");
 		Dictionary<string, object?> values = attribute.GetValues();
 		return AutoLocalizeValidationAttributesAttributeData.FromDictionary(values);
 	}
@@ -75,7 +72,6 @@ public class ModuleWeaver : BaseModuleWeaver
 		TypeDefinition validationAttributeType,
 		AutoLocalizeValidationAttributesAttributeData attributeData)
 	{
-		WriteDebug("Processing classes");
 		IEnumerable<TypeDefinition> classesToScan =
 			ModuleDefinition
 			.GetAllTypes()
@@ -102,7 +98,6 @@ public class ModuleWeaver : BaseModuleWeaver
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		TypeDefinition type)
 	{
-		WriteDebug($"Scanning class {type.FullName}");
 		IEnumerable<IMemberDefinition> memberDefinitions = [.. type.Fields, .. type.Properties];
 		memberDefinitions = memberDefinitions.Where(x => !x.Name.StartsWith("<"));
 		foreach (IMemberDefinition memberDefinition in memberDefinitions)
@@ -120,7 +115,6 @@ public class ModuleWeaver : BaseModuleWeaver
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		IMemberDefinition memberDefinition)
 	{
-		WriteDebug($"    Scanning member {memberDefinition.Name}");
 		IEnumerable<CustomAttribute> validationAttributes =
 			memberDefinition
 			.CustomAttributes
@@ -180,21 +174,16 @@ public class ModuleWeaver : BaseModuleWeaver
 		);
 
 		addedResourceNames.Add(resourceName);
-		WriteDebug($"        Updated {attribute.AttributeType.Name} with"
-			+ $" ErrorMessageResourceType={systemTypeReference.FullName},"
-			+ $" ErrorMessageResourceName={resourceName}");
 	}
 
 	private void WriteManifestFile(string content)
 	{
-		WriteDebug("Writing manifest file");
 		string manifestFilePath = Path.ChangeExtension(ProjectFilePath, "Morris.AutoLocalize.csv");
 		File.WriteAllText(manifestFilePath, content);
 	}
 
 	private void RemoveDependency()
 	{
-		WriteDebug("Removing assembly references");
 		AssemblyNameReference? assemblyReference =
 			ModuleDefinition
 			.AssemblyReferences
