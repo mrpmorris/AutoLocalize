@@ -21,13 +21,12 @@ public class ModuleWeaver : BaseModuleWeaver
 	public override void Execute()
 	{
 		AutoLocalizeValidationAttributesAttributeData? attributeData = GetValidationAttributeData();
-		if (attributeData is null)
-			return;
-
-		TypeDefinition? validationAttributeType = GetValidationAttributeType();
-		if (validationAttributeType is not null)
-			ProcessClasses(validationAttributeType, attributeData);
-
+		if (attributeData is not null)
+		{
+			TypeDefinition? validationAttributeType = GetValidationAttributeType();
+			if (validationAttributeType is not null)
+				ProcessClasses(validationAttributeType, attributeData);
+		}
 		RemoveDependency();
 	}
 
@@ -137,7 +136,7 @@ public class ModuleWeaver : BaseModuleWeaver
 			)
 			.Select(x => x.CustomAttribute);
 
-		foreach(CustomAttribute attribute in validationAttributes)
+		foreach (CustomAttribute attribute in validationAttributes)
 			UpdateValidationAttribute(attributeData, addedResourceNames, attribute);
 	}
 
