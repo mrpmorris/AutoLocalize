@@ -42,4 +42,24 @@ public class RemoveAutoLocalizeDependencyTests
 
 		Assert.Empty(attributes);
 	}
+
+	[Fact]
+	public void WhenCantFindAutoLocalizeValidationAttributesAttribute_ThenReferenceToAutoLocalizeShouldHaveBeenRemoved()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			//[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+			""";
+		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+
+		bool isReferenced =
+			fodyTestResult
+			.Assembly
+			.GetReferencedAssemblies()
+			.Select(x => x.FullName.Split(',')[0])
+			.Any(x => x == "Morris.AutoLocalize");
+		Assert.False(isReferenced, "Morris.AutoLocalize should not be referenced.");
+	}
+
 }
