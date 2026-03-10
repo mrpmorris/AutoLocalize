@@ -190,7 +190,7 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	private void WriteManifestFile(string content)
 	{
-		string manifestFilePath = Path.ChangeExtension(ProjectFilePath, "Morris.AutoLocalize.csv");
+		string manifestFilePath = Path.ChangeExtension(ProjectFilePath, "Morris.AutoLocalize.ValidatorAttributes.csv");
 		File.WriteAllText(manifestFilePath, content);
 	}
 
