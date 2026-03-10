@@ -42,6 +42,9 @@ per assembly.
    }
    ```
 
+**Note:** In case you don't know, to get a class for your resx file you need to set its
+`Custom Tool` property to `PublicResXFileCodeGenerator`.
+
 ## What the weaver does
 
 - Finds every field/property decorated with an attribute descended from `ValidationAttribute`.
