@@ -24,7 +24,7 @@ internal class AutoLocalizeValidationAttributesAttributeData
 			(TypeReference)values[nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceType)]!;
 		errorMessageResourceType = moduleDefinition.ImportReference(errorMessageResourceType);
 
-		string errorMessageResourceNamePrefix = "Validation_";
+		string errorMessageResourceNamePrefix = "AutoLocalize_";
 		if (values.TryGetValue(nameof(AutoLocalizeValidationAttributesAttribute.ErrorMessageResourceNamePrefix), out object? val) && val is not null)
 		{
 			errorMessageResourceNamePrefix = (string)val!;

@@ -24,7 +24,7 @@ per assembly.
    </Weavers>
    ```
 4. Specify the assembly-level attribute that tells the weaver which resource class
-   to use. The default `ErrorMessageResourceNamePrefix` is `"Validation_"` if you do
+   to use. The default `ErrorMessageResourceNamePrefix` is `"AutoLocalize_"` if you do
    not set it.
    ```csharp
    using Morris.AutoLocalize;
@@ -32,7 +32,7 @@ per assembly.
 
    [assembly: AutoLocalizeValidationAttributes(
        typeof(Resources.ValidationMessages),
-       ErrorMessageResourceNamePrefix = "Validation_")]
+       ErrorMessageResourceNamePrefix = "AutoLocalize_")]
 
    public class Person
    {
@@ -44,22 +44,53 @@ per assembly.
 
 ## What the weaver does
 
-- Finds every field/property decorated with a `ValidationAttribute`.
-- If `ErrorMessageResourceType` is not set, it is assigned the type you specified in
-  `AutoLocalizeValidationAttributes`.
-- If `ErrorMessageResourceName` is not set, it is set to
-  `{ErrorMessageResourceNamePrefix}{AttributeNameWithoutSuffix}` (for example,
-  `RequiredAttribute` -> `Validation_Required` by default, because the default prefix
-  is `Validation_`).
-- If only `ErrorMessageResourceName` is set (e.g., to use a specific key in your
-  default resource file), AutoLocalize sets only the resource type.
-- If both `ErrorMessageResourceType` and `ErrorMessageResourceName` are set (e.g., a
-  custom message from another resource file), AutoLocalize leaves the attribute
-  untouched.
-- If `ErrorMessageResourceType` is already set (with or without a name), AutoLocalize
-  does not alter the attribute.
-- The assembly reference to `Morris.AutoLocalize` and the marker attribute are
-  removed after weaving, so your runtime assembly has no extra dependencies.
+- Finds every field/property decorated with an attribute descended from `ValidationAttribute`.
+- Ensures the `ErrorMessageResourceType` and `ErrorMessageResourceName` properties are set on each attribute.
+- Removes the `[assembly:AutoLocalizeValidationAttributes]` attribute from your build output.
+- Removes the assembly reference to `Morris.AutoLocalize` from your build output, so your runtime assembly has no extra dependencies.
+
+## ValidationAttribute update rules
+
+- `ErrorMessageResourceResourceType` is set to the value specified in the
+       `[assembly:LocalizeValidationAttributes({value here}})]` attribute you added to your project.
+- `ErrorMessageResourceName` is set to `{Prefix}_{ShortAttributeName}`
+- If either the `ErrorMessageResourceType` or `ErrorMessage` properties 
+       are set on the attribute then it is assumed you want a specific error message,
+       so AutoLocalize will leave the validation attribute untouched.
+
+
+### Resource automatic naming algorithm
+- Prefix = `AutoLocalize_` - this can be overridden when declaring your
+    `[assembly:LocalizeValidationAttributes(typeof(MyResource))]` attribute by
+    setting the `ErrorMessageResourceNamePrefix` property.
+- ShortAttributeMame = The class name of the attribute that descends from `ValidationAttribute`
+    without the word `Attribute` at the end.
+    - `RequiredAttribute` => `Required`
+    - `SomeGenericValidationAttribute<int>` => `SomeGenericValidation`
+
+### Examples
+```c#
+[assembly:AutoLocalizeValidationAttributes(typeof(DataAnnotationsMessages))]
+```
+
+|Attribute|ErrorMessageResourceType|ErrorMessageResourceName|
+|---------|------------------------|------------------------|
+|`[Required]`|DataAnnotationsMessages|AutoLocalize_Required|
+|`[Range(0, int.MaxValue, ErrorMessageResourceName="CannotBeNegative")]`|DataAnnotationsMessages|&lt;unaltered&gt;|
+|`[EmailAddress(ErrorMessageResourceType=typeof(X), ErrorMessageResourceName="MustBeAValidEmailAddress")]`]|&lt;unaltered&gt;|&lt;unaltered&gt;|
+|`[EmailAddress(ErrorMessage="{0} must be a valid email address")]`]|&lt;unaltered&gt;|&lt;unaltered&gt;|
+
+```c#
+[assembly:AutoLocalizeValidationAttributes(
+   typeof(DataAnnotationsMessages),
+   ErrorMessageResourceNamePrefix = "ValidationError_"
+   )]
+```
+
+|Attribute|ErrorMessageResourceType|ErrorMessageResourceName|
+|---------|------------------------|------------------------|
+|`[Required]`|DataAnnotationsMessages|`ValidationError_`Required|
+
 
 ## Manifest of resource keys
 
@@ -69,8 +100,8 @@ contains all resource keys the weaver added or discovered:
 
 ```
 ErrorMessageResourceName
-Validation_Required
-Validation_StringLength
+AutoLocalize_Required
+AutoLocalize_StringLength
 ```
 
 Use this manifest to ensure your resource file contains entries for each key.

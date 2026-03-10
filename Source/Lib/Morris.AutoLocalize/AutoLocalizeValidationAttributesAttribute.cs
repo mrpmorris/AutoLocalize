@@ -25,10 +25,10 @@ class AutoLocalizeValidationAttributesAttribute : Attribute
 
 	/// <summary>
 	/// Specifies the prefix to use for the key of the resource. For example if
-	/// the value is "Validation_" and the ValidationAttribute used is 
-	/// RequiredAttribute then the expected key would be "Validation_Required"
+	/// the value is "AutoLocalize_" and the ValidationAttribute used is 
+	/// RequiredAttribute then the expected key would be "AutoLocalize_Required"
 	/// </summary>
-	public string ErrorMessageResourceNamePrefix { get; set; } = "Validation_";
+	public string ErrorMessageResourceNamePrefix { get; set; } = "AutoLocalize_";
 
 	/// <summary>
 	/// Updates ErrorMessageResourceType and ErrorMessageResourceName on ValidationAttribute descendants defined in the specified assembly.

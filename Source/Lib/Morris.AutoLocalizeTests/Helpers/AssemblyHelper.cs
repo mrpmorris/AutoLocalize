@@ -18,7 +18,7 @@ internal class AssemblyHelper
 		Assembly assembly,
 		IEnumerable<string> expectedResourceNames,
 		string resourceTypeName = "UnitTest.AppStrings",
-		string resourceNamePrefix = "Validation_")
+		string resourceNamePrefix = "AutoLocalize_")
 	{
 		var discoveredResourceNamesHashSet = new HashSet<string>();
 		Type resourceType = assembly.GetType(resourceTypeName)!;
