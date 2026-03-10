@@ -6,7 +6,7 @@ AutoLocalize is a [Fody](https://github.com/Fody/Fody) weaver that fills in
 `ValidationAttribute`-based annotations so you only declare your resource type once
 per assembly.
 
-# Problem
+## Problem description
 It's not possible to have `DataAnnotations` validation attributes automatically pick
 up the current local and present translated languages.
 
