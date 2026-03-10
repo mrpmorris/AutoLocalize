@@ -122,3 +122,9 @@ AutoLocalize_StringLength
 ```
 
 Use this manifest to ensure your resource file contains entries for each key.
+
+# Automatic translation
+There is a script in the root of this repository named `TranslateLanguage.ps1`.
+
+This script will use ChatGPT API to translate your resx files into
+another language. Instructions on how to run it are at the top of that file.
