@@ -125,7 +125,11 @@ public class ModuleWeaver : BaseModuleWeaver
 				AttributeValues = x.GetValues()
 			}
 			)
-			.Where(x => !x.AttributeValues.TryGetValue("ErrorMessageResourceType", out object? value) || value is null)
+			.Where(x => 
+				(!x.AttributeValues.TryGetValue("ErrorMessageResourceType", out object? resourceType) || resourceType is null)
+				&&
+				(!x.AttributeValues.TryGetValue("ErrorMessage", out object? errorMessage) || errorMessage is null)
+			)
 			.Select(x =>
 				new ValidationAttributeInfo(
 					x.ValidationAttribute,

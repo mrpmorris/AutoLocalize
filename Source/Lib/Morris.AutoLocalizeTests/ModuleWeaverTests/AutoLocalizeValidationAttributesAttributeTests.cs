@@ -29,7 +29,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: ["Validation_Required"]
+			expectedResourceNames: ["AutoLocalize_Required"]
 		);
 	}
 
@@ -56,7 +56,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: ["Validation_Required"]
+			expectedResourceNames: ["AutoLocalize_Required"]
 		);
 	}
 
@@ -125,7 +125,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: ["Validation_Required"]
+			expectedResourceNames: ["AutoLocalize_Required"]
 		);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
@@ -137,7 +137,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 		var requiredAttribute = nameProperty.GetCustomAttribute<RequiredAttribute>();
 		Assert.NotNull(requiredAttribute);
 
-		Assert.Equal("Validation_Required", requiredAttribute.ErrorMessageResourceName);
+		Assert.Equal("AutoLocalize_Required", requiredAttribute.ErrorMessageResourceName);
 		Assert.Equal("UnitTest.AppStrings", requiredAttribute.ErrorMessageResourceType?.FullName);
 	}
 
@@ -156,6 +156,33 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			public class Person
 			{
 				[Required(ErrorMessageResourceType=typeof(UnitTest.AppStrings))]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+
+		AssemblyHelper.AssertWeaverResults(
+			fodyTestResult.Assembly,
+			expectedResourceNames: []
+		);
+	}
+
+	[Fact]
+	public void WhenErrorMessageIsSet_ThenNoActionIsTaken()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class Person
+			{
+				[Required(ErrorMessage="You must enter a name.")]
 				public string Name { get; set; }
 			}
 			""";
