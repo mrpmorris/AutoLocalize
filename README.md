@@ -3,7 +3,7 @@
 
 AutoLocalize is a [Fody](https://github.com/Fody/Fody) weaver that fills in
 `ErrorMessageResourceType` and `ErrorMessageResourceName` for your
-`ValidationAttribute`-based annotations so you only declare your resource type once
+`ValidationAttribute` based annotations so you only declare your resource type once
 per assembly.
 
 ## Problem description
