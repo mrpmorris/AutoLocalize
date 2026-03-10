@@ -8,9 +8,9 @@ per assembly.
 
 ## Problem description
 It's not possible to have `DataAnnotations` validation attributes automatically pick
-up the current local and present translated languages.
+up the current locale and present translated messages.
 
-If you have translated resource files the you can set `ErrorMessageResourceType`
+If you have translated resource files then you can set `ErrorMessageResourceType`
 and `ErrorMessageResourceName` on your validation attributes, but when you have
 thousands of them this can become troublesome and error-prone.
 
@@ -68,8 +68,8 @@ on a convention.
 
 ## ValidationAttribute update rules
 
-- `ErrorMessageResourceResourceType` is set to the value specified in the
-       `[assembly:LocalizeValidationAttributes({value here}})]` attribute you added to your project.
+- `ErrorMessageResourceType` is set to the value specified in the
+       `[assembly:AutoLocalizeValidationAttributes({value here})]` attribute you added to your project.
 - `ErrorMessageResourceName` is set to `{Prefix}_{ShortAttributeName}`
 - If either the `ErrorMessageResourceType` or `ErrorMessage` properties 
        are set on the attribute then it is assumed you want a specific error message,
@@ -78,9 +78,9 @@ on a convention.
 
 ### Resource automatic naming algorithm
 - Prefix = `AutoLocalize_` - this can be overridden when declaring your
-    `[assembly:LocalizeValidationAttributes(typeof(MyResource))]` attribute by
+    `[assembly:AutoLocalizeValidationAttributes(typeof(MyResource))]` attribute by
     setting the `ErrorMessageResourceNamePrefix` property.
-- ShortAttributeMame = The class name of the attribute that descends from `ValidationAttribute`
+- ShortAttributeName = The class name of the attribute that descends from `ValidationAttribute`
     without the word `Attribute` at the end.
     - `RequiredAttribute` => `Required`
     - `SomeGenericValidationAttribute<int>` => `SomeGenericValidation`
@@ -94,8 +94,8 @@ on a convention.
 |---------|------------------------|------------------------|
 |`[Required]`|DataAnnotationsMessages|AutoLocalize_Required|
 |`[Range(0, int.MaxValue, ErrorMessageResourceName="CannotBeNegative")]`|DataAnnotationsMessages|&lt;unaltered&gt;|
-|`[EmailAddress(ErrorMessageResourceType=typeof(X), ErrorMessageResourceName="MustBeAValidEmailAddress")]`]|&lt;unaltered&gt;|&lt;unaltered&gt;|
-|`[EmailAddress(ErrorMessage="{0} must be a valid email address")]`]|&lt;unaltered&gt;|&lt;unaltered&gt;|
+|`[EmailAddress(ErrorMessageResourceType=typeof(X), ErrorMessageResourceName="MustBeAValidEmailAddress")]`|&lt;unaltered&gt;|&lt;unaltered&gt;|
+|`[EmailAddress(ErrorMessage="{0} must be a valid email address")]`|&lt;unaltered&gt;|&lt;unaltered&gt;|
 
 ```c#
 [assembly:AutoLocalizeValidationAttributes(
@@ -106,7 +106,7 @@ on a convention.
 
 |Attribute|ErrorMessageResourceType|ErrorMessageResourceName|
 |---------|------------------------|------------------------|
-|`[Required]`|DataAnnotationsMessages|`ValidationError_`Required|
+|`[Required]`|DataAnnotationsMessages|ValidationError_Required|
 
 
 ## Manifest of resource keys
