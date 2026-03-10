@@ -7,11 +7,11 @@
 		<Nullable>enable</Nullable>
 		<PackageId>$(MSBuildProjectName).Fody</PackageId>
 		<Title>AutoLocalize</Title>
-		<Description>Set validation resources types/names at assembly level.</Description>
+		<Description>Set ValidationAttributes' ErrorMessageResourceType and ErrorMessageResourceName at project level.</Description>
 		<PackageIcon>logo-small.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/mrpmorris/AutoLocalize</RepositoryUrl>
-		<PackageTags>Localization, L10N, I18N, Convention</PackageTags>
+        <PackageTags>Fody;DataAnnotations;Validation;Localization;RESX;ASP.NETCore;Blazor;Internationalization</PackageTags>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
