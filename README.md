@@ -1,5 +1,8 @@
-![](./Images/logo-small.png)
 # AutoLocalize
+![](./Images/logo-small.png)
+
+[![NuGet version](https://img.shields.io/nuget/v/Morris.AutoLocalize.Fody.svg)](https://www.nuget.org/packages/Morris.AutoLocalize.Fody)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Morris.AutoLocalize.Fody.svg)](https://www.nuget.org/packages/Morris.AutoLocalize.Fody)
 
 AutoLocalize is a [Fody](https://github.com/Fody/Fody) weaver that fills in
 `ErrorMessageResourceType` and `ErrorMessageResourceName` for your
@@ -112,7 +115,7 @@ on a convention.
 ## Manifest of resource keys
 
 During weaving a CSV file named after your project (e.g.
-`MyProject.Morris.AutoLocalize.csv`) is written next to the project file. It
+`MyProject.Morris.AutoLocalize.ValidatorAttributes.csv`) is written next to the project file. It
 contains all resource keys the weaver added or discovered:
 
 ```
