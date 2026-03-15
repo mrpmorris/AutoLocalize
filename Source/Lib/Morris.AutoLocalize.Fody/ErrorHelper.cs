@@ -4,7 +4,7 @@ namespace Morris.AutoLocalize.Fody;
 
 internal static class ErrorFactory
 {
-	public const string ErrorMessageResourceNameNotFoundCode = "MAL0001";
+	public const string ErrorMessageResourceNameNotFoundCode = "AutoLocalize0001";
 
 	public static string CreateErrorMessageResourceNameNotFoundError(TypeReference errorMessageResourceType, string errorMessageResourceName) =>
 		$"{ErrorMessageResourceNameNotFoundCode}: ErrorMessageResourceName \"{errorMessageResourceName}\""

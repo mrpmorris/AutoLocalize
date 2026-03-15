@@ -19,7 +19,7 @@ public class RemoveAutoLocalizeDependencyTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: []);
+			assemblyResourceValuesToCreate: []);
 
 		bool isReferenced =
 			fodyTestResult
@@ -43,7 +43,7 @@ public class RemoveAutoLocalizeDependencyTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
+			assemblyResourceValuesToCreate: [new("AutoLocalize_Required", null)]);
 
 		IEnumerable<Attribute> attributes = fodyTestResult
 			.Assembly
@@ -66,7 +66,7 @@ public class RemoveAutoLocalizeDependencyTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: []);
+			assemblyResourceValuesToCreate: []);
 
 		bool isReferenced =
 			fodyTestResult

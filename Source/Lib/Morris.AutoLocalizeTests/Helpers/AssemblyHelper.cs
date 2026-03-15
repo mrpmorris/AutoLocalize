@@ -15,19 +15,21 @@ internal class AssemblyHelper
 		| BindingFlags.NonPublic;
 
 	public static void AssertWeaverResults(
-		Assembly assembly,
-		IEnumerable<string>? expectedManifestEntries = null,
+		Fody.TestResult testResult,
+		IEnumerable<string>? requiredManifestEntries = null,
+		IEnumerable<string>? requiredErrorMessages = null,
 		string resourceTypeName = "UnitTest.AppStrings",
 		string resourceNamePrefix = "AutoLocalize_")
 	{
+		requiredErrorMessages ??= [];
 		var discoveredResourceNamesHashSet = new HashSet<string>();
-		Type resourceType = assembly.GetType(resourceTypeName)!;
+		Type resourceType = testResult.Assembly.GetType(resourceTypeName)!;
 		Assert.True(
 			resourceType is not null,
 			$"Resource type \"{resourceTypeName}\" not found in assembly."
 		);
 
-		foreach (Type type in assembly.GetTypes())
+		foreach (Type type in testResult.Assembly.GetTypes())
 		{
 			ScanType(
 				type,
@@ -37,9 +39,9 @@ internal class AssemblyHelper
 			);
 		}
 
-		if (expectedManifestEntries is not null)
+		if (requiredManifestEntries is not null)
 		{
-			expectedManifestEntries
+			requiredManifestEntries
 				.GetDifferences(
 					discoveredResourceNamesHashSet,
 					additionalItems: out string[] unexpectedResourceNames,
@@ -49,25 +51,23 @@ internal class AssemblyHelper
 			if (unexpectedResourceNames.Any() || missingResourceNames.Any())
 			{
 				var builder = new StringBuilder();
-				AddItems(builder, "Missing resource names", missingResourceNames);
-				AddItems(builder, "Unexpected resource names", unexpectedResourceNames);
+				builder.AddItems("Missing resource names", missingResourceNames);
+				builder.AddItems("Unexpected resource names", unexpectedResourceNames);
 				Assert.Fail($"There were discrepancies in the registered resource names{Environment.NewLine}{builder}");
 			}
 		}
 
-		static void AddItems(StringBuilder builder, string title, IEnumerable<string> items)
-		{
-			if (!items.Any())
-				return;
+		requiredErrorMessages.GetDifferences(
+			comparison: testResult.Errors.Select(x => "Error: " + x.Text).Union(testResult.Warnings.Select(x => "Warning: " + x.Text)),
+			out string[] unexpectedErrorMessages,
+			out string[] missingErrorMessages);
 
-			string lineSeparator = new string('=', title.Length);
-			builder.AppendLine(lineSeparator);
-			builder.AppendLine(title);
-			builder.AppendLine(lineSeparator);
-			foreach (string item in items)
-			{
-				builder.AppendLine($"  - {item}");
-			}
+		if (unexpectedErrorMessages.Any() || missingErrorMessages.Any())
+		{
+			var builder = new StringBuilder();
+			builder.AddItems("The following weaver errors were expected but not found", missingErrorMessages);
+			builder.AddItems("The following unexpected weaver errors were uncountered", unexpectedErrorMessages);
+			Assert.Fail($"There were discrepancies in the weaver errors output{Environment.NewLine}{builder}");
 		}
 	}
 

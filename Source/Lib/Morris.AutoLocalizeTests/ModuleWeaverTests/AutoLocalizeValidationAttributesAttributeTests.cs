@@ -30,7 +30,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult);
 	}
 
 	[Fact]
@@ -57,7 +57,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult);
 	}
 
 
@@ -84,11 +84,11 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: [new("Bob", null)]);
+			assemblyResourceValuesToCreate: [new("Bob", null)]);
 
 		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: ["Bob"]
+			fodyTestResult,
+			requiredManifestEntries: ["Bob"]
 		);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
@@ -129,9 +129,9 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
+			assemblyResourceValuesToCreate: [new("AutoLocalize_Required", null)]);
 
-		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
 		Assert.NotNull(person);
@@ -171,8 +171,8 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: []
+			fodyTestResult,
+			requiredManifestEntries: []
 		);
 	}
 
@@ -199,11 +199,11 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
+			assemblyResourceValuesToCreate: [new("AutoLocalize_Required", null)]);
 
 		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: []
+			fodyTestResult,
+			requiredManifestEntries: []
 		);
 	}
 
@@ -230,11 +230,11 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: [new("AutoLocalize_StringLength", null)]);
+			assemblyResourceValuesToCreate: [new("AutoLocalize_StringLength", null)]);
 
 		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: ["AutoLocalize_Required"]
+			fodyTestResult,
+			requiredManifestEntries: ["AutoLocalize_StringLength"]
 		);
 	}
 
@@ -262,7 +262,10 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
+		AssemblyHelper.AssertWeaverResults(
+			testResult: fodyTestResult,
+			requiredErrorMessages: ["Error: AutoLocalize0001: ErrorMessageResourceName \"AutoLocalize_StringLength\" not found in resource \"UnitTest.AppStrings\"."]
+		);
 	}
 
 }

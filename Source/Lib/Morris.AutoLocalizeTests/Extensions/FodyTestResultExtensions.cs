@@ -3,6 +3,7 @@ using System.Text;
 
 namespace Morris.AutoLocalizeTests.Extensions;
 
+// TODO: PeteM - Delete file
 internal static class FodyTestResultExtensions
 {
 	public static void AssertNoDiagnosticsOutput(this Fody.TestResult result)

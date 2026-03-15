@@ -33,10 +33,9 @@ internal static class WeaverExecutor
 		string sourceCode,
 		out Fody.TestResult testResult,
 		out string? manifest,
-		bool assertNoDiagnosticsOutput = true,
-		IEnumerable<KeyValuePair<string, string?>>? assemblyResourceValues = null)
+		IEnumerable<KeyValuePair<string, string?>>? assemblyResourceValuesToCreate = null)
 	{
-		assemblyResourceValues ??= [new("AutoLocalize_Required", "The {0} field is required.")];
+		assemblyResourceValuesToCreate ??= [new("AutoLocalize_Required", "The {0} field is required.")];
 
 		Guid uniqueId = Guid.NewGuid();
 		SyntaxTree unitTestSyntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
@@ -62,7 +61,7 @@ internal static class WeaverExecutor
 		{
 			IEnumerable<ResourceDescription> manifestResources =
 			[
-				CreateResources("UnitTest.AppStrings.resources", assemblyResourceValues)
+				CreateResources("UnitTest.AppStrings.resources", assemblyResourceValuesToCreate)
 			];
 
 			EmitResult emitResult;
@@ -99,8 +98,6 @@ internal static class WeaverExecutor
 				!File.Exists(manifestFilePath)
 				? null
 				: File.ReadAllText(manifestFilePath);
-			if (assertNoDiagnosticsOutput)
-				testResult.AssertNoDiagnosticsOutput();
 		}
 		finally
 		{
