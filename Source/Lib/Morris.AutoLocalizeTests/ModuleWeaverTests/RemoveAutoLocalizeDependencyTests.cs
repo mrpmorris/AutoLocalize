@@ -14,7 +14,12 @@ public class RemoveAutoLocalizeDependencyTests
 			using Morris.AutoLocalize;
 			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
 			""";
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: []);
 
 		bool isReferenced =
 			fodyTestResult
@@ -33,7 +38,12 @@ public class RemoveAutoLocalizeDependencyTests
 			using Morris.AutoLocalize;
 			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
 			""";
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: [new("AutoLocalize_Required", null)]);
 
 		IEnumerable<Attribute> attributes = fodyTestResult
 			.Assembly
@@ -51,7 +61,12 @@ public class RemoveAutoLocalizeDependencyTests
 			using Morris.AutoLocalize;
 			//[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
 			""";
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: []);
 
 		bool isReferenced =
 			fodyTestResult

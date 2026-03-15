@@ -3,6 +3,7 @@ using System.Text;
 
 namespace Morris.AutoLocalizeTests.Extensions;
 
+// TODO: PeteM - Delete file
 internal static class FodyTestResultExtensions
 {
 	public static void AssertNoDiagnosticsOutput(this Fody.TestResult result)
@@ -22,6 +23,6 @@ internal static class FodyTestResultExtensions
 		IReadOnlyList<SequencePointMessage> messages)
 	{
 		foreach (SequencePointMessage message in messages)
-			builder.AppendLine($"{messageType}: {message}");
+			builder.AppendLine($"{messageType}: {message.Text}");
 	}
 }

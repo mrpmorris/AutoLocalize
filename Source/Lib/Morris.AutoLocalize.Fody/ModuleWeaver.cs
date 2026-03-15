@@ -3,9 +3,11 @@ using Mono.Cecil;
 using Morris.AutoLocalize.Fody.Extensions;
 using Morris.AutoLocalize.Fody.Helpers;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Text;
 
 namespace Morris.AutoLocalize.Fody;
@@ -78,23 +80,17 @@ public class ModuleWeaver : BaseModuleWeaver
 			.Where(x => x.IsClass)
 			.Where(x => !x.Name.StartsWith("<"));
 
-		var addedResourceNames = new HashSet<string>(StringComparer.Ordinal);
+		var requiredResourceNames = new HashSet<string>(StringComparer.Ordinal);
 		foreach (TypeDefinition type in classesToScan)
-			ScanType(validationAttributeType, addedResourceNames, attributeData, type);
+			ScanType(validationAttributeType, requiredResourceNames, attributeData, type);
 
-		var manifestBuilder = new StringBuilder();
-		IEnumerable<string> addedResourceNamesOrdered =
-			addedResourceNames
-			.OrderBy(x => x);
-		manifestBuilder.AppendLine("ErrorMessageResourceName");
-		foreach (string addedResourceName in addedResourceNamesOrdered)
-			manifestBuilder.AppendLine(addedResourceName);
-		WriteManifestFile(manifestBuilder.ToString());
+		EnsureRequiredResourceNamesExistInResourceFile(attributeData.ErrorMessageResourceType, requiredResourceNames);
+		WriteManifestFile(requiredResourceNames);
 	}
 
 	private void ScanType(
 		TypeDefinition validationAttributeType,
-		HashSet<string> addedResourceNames,
+		HashSet<string> requiredResourceNames,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		TypeDefinition type)
 	{
@@ -103,7 +99,7 @@ public class ModuleWeaver : BaseModuleWeaver
 		foreach (IMemberDefinition memberDefinition in memberDefinitions)
 			ScanMember(
 				validationAttributeType,
-				addedResourceNames,
+				requiredResourceNames,
 				attributeData,
 				memberDefinition
 			);
@@ -111,7 +107,7 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	private void ScanMember(
 		TypeDefinition validationAttributeType,
-		HashSet<string> addedResourceNames,
+		HashSet<string> requiredResourceNames,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		IMemberDefinition memberDefinition)
 	{
@@ -138,12 +134,12 @@ public class ModuleWeaver : BaseModuleWeaver
 			);
 
 		foreach (ValidationAttributeInfo validationAttribute in validationAttributes)
-			UpdateValidationAttribute(attributeData, addedResourceNames, validationAttribute);
+			UpdateValidationAttribute(attributeData, requiredResourceNames, validationAttribute);
 	}
 
 	private void UpdateValidationAttribute(
 		AutoLocalizeValidationAttributesAttributeData attributeData,
-		HashSet<string> addedResourceNames,
+		HashSet<string> requiredResourceNames,
 		ValidationAttributeInfo validationAttributeInfo)
 	{
 		string attributeTypeName = validationAttributeInfo.ValidationAttribute.AttributeType.Name;
@@ -168,11 +164,11 @@ public class ModuleWeaver : BaseModuleWeaver
 
 		if (!string.IsNullOrEmpty(validationAttributeInfo.ErrorMessageResourceName))
 		{
-			addedResourceNames.Add(validationAttributeInfo.ErrorMessageResourceName!);
+			requiredResourceNames.Add(validationAttributeInfo.ErrorMessageResourceName!);
 		}
 		else
 		{
-			addedResourceNames.Add(resourceName);
+			requiredResourceNames.Add(resourceName);
 			validationAttributeInfo
 				.ValidationAttribute
 				.Properties
@@ -188,10 +184,56 @@ public class ModuleWeaver : BaseModuleWeaver
 		}
 	}
 
-	private void WriteManifestFile(string content)
+	private void EnsureRequiredResourceNamesExistInResourceFile(
+		TypeReference errorMessageResourceType,
+		IEnumerable<string> requiredResourceNames)
 	{
-		string manifestFilePath = Path.ChangeExtension(ProjectFilePath, "Morris.AutoLocalize.ValidatorAttributes.csv");
-		File.WriteAllText(manifestFilePath, content);
+		HashSet<string> actualKeysInResourceFile = GetActualResourceNamesForResourceType(errorMessageResourceType);
+		foreach (string requiredResourceName in requiredResourceNames.OrderBy(x => x))
+		{
+			if (!actualKeysInResourceFile.Contains(requiredResourceName))
+				WriteError(ErrorFactory.CreateErrorMessageResourceNameNotFoundError(errorMessageResourceType, requiredResourceName));
+		}
+	}
+
+
+	private void WriteManifestFile(HashSet<string> requiredResourceNames)
+	{
+		var builder = new StringBuilder();
+		builder.AppendLine("ErrorMessageResourceName");
+		foreach (string requiredResourceName in requiredResourceNames)
+			builder.AppendLine(requiredResourceName);
+	}
+
+	private static HashSet<string> GetActualResourceNamesForResourceType(TypeReference errorMessageResourceType)
+	{
+		TypeDefinition errorMessageResourceTypeDefinition = errorMessageResourceType.Resolve();
+		if (errorMessageResourceTypeDefinition is null)
+			throw new WeavingException($"Could not resolve type for {nameof(errorMessageResourceType)} \"{errorMessageResourceType.FullName}\".");
+
+		AssemblyDefinition resourceAssembly = errorMessageResourceTypeDefinition.Module.Assembly;
+
+		string resourceBaseName = errorMessageResourceType.FullName.Replace('/', '+');
+		string expectedResourcesName = $"{resourceBaseName}.resources";
+
+		EmbeddedResource resourcesFile = resourceAssembly
+			.MainModule
+			.Resources
+			.OfType<EmbeddedResource>()
+			.SingleOrDefault(x => x.Name == expectedResourcesName);
+		if (resourcesFile is null)
+			throw new WeavingException($"Could not find Embedded resources \"{expectedResourcesName}\" for type \"{errorMessageResourceType.FullName}\".");
+
+		var actualResourceNames = new HashSet<string>(StringComparer.Ordinal);
+		using (Stream resourceStream = resourcesFile.GetResourceStream())
+		{
+			using var reader = new ResourceReader(resourceStream);
+			IDictionaryEnumerator enumerator = reader.GetEnumerator();
+			while (enumerator.MoveNext())
+				actualResourceNames.Add((string)enumerator.Key);
+		}
+
+		return actualResourceNames;
 	}
 
 	private void RemoveDependency()

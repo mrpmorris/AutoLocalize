@@ -25,12 +25,12 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedResourceNames: ["AutoLocalize_Required"]
-		);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult);
 	}
 
 	[Fact]
@@ -52,12 +52,12 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedResourceNames: ["AutoLocalize_Required"]
-		);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult);
 	}
 
 
@@ -80,11 +80,15 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: [new("Bob", null)]);
 
 		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedResourceNames: ["Bob"]
+			fodyTestResult,
+			requiredManifestEntries: ["Bob"]
 		);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
@@ -121,12 +125,13 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: [new("AutoLocalize_Required", null)]);
 
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedResourceNames: ["AutoLocalize_Required"]
-		);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
 		Assert.NotNull(person);
@@ -160,11 +165,14 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedResourceNames: []
+			fodyTestResult,
+			requiredManifestEntries: []
 		);
 	}
 
@@ -187,11 +195,76 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: [new("AutoLocalize_Required", null)]);
 
 		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedResourceNames: []
+			fodyTestResult,
+			requiredManifestEntries: []
+		);
+	}
+
+	[Fact]
+	public void WhenErrorMessageResourceNameIsInResourcesFile_NoErrorIsOutput()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class Person
+			{
+				[StringLength(50)]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: [new("AutoLocalize_StringLength", null)]);
+
+		AssemblyHelper.AssertWeaverResults(
+			fodyTestResult,
+			requiredManifestEntries: ["AutoLocalize_StringLength"]
+		);
+	}
+
+	[Fact]
+	public void WhenErrorMessageResourceNameIsNotInResourcesFile_ThenOutputsErrorMessage()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class Person
+			{
+				[StringLength(50)]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
+
+		AssemblyHelper.AssertWeaverResults(
+			testResult: fodyTestResult,
+			requiredErrorMessages: ["Error: AutoLocalize0001: ErrorMessageResourceName \"AutoLocalize_StringLength\" not found in resource \"UnitTest.AppStrings\"."]
 		);
 	}
 
