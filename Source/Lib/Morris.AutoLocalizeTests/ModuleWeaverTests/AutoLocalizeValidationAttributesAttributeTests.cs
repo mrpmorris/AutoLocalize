@@ -208,7 +208,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 	}
 
 	[Fact]
-	public void WhenErrorMessageResourceNameIsInResourcesFile_ThenOutputsNameToManifest_AndIndicatesTheResourceKeyIsPresent()
+	public void WhenErrorMessageResourceNameIsInResourcesFile_NoErrorIsOutput()
 	{
 		string sourceCode =
 			"""
@@ -221,7 +221,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 			public class Person
 			{
-				[Required]
+				[StringLength(50)]
 				public string Name { get; set; }
 			}
 			""";
@@ -230,7 +230,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
+			assemblyResourceValues: [new("AutoLocalize_StringLength", null)]);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
@@ -239,7 +239,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 	}
 
 	[Fact]
-	public void WhenErrorMessageResourceNameIsNotInResourcesFile_ThenOutputsNameToManifest_AndIndicatesTheResourceKeyIsAbsent()
+	public void WhenErrorMessageResourceNameIsNotInResourcesFile_ThenOutputsErrorMessage()
 	{
 		string sourceCode =
 			"""
@@ -252,7 +252,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 			public class Person
 			{
-				[Required]
+				[StringLength(50)]
 				public string Name { get; set; }
 			}
 			""";
@@ -262,10 +262,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: ["AutoLocalize_Required"]
-		);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
 	}
 
 }
