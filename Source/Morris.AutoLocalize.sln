@@ -23,6 +23,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{4D99F97B-C9AD-44D6-8E4F-1301744FE901}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+		..\Docs\releases.md = ..\Docs\releases.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildPipeline", "BuildPipeline", "{3B0A3997-3C05-4990-AC8F-4F3D90D1A5B7}"
 	ProjectSection(SolutionItems) = preProject

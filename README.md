@@ -4,6 +4,8 @@
 [![NuGet version](https://img.shields.io/nuget/v/Morris.AutoLocalize.Fody.svg)](https://www.nuget.org/packages/Morris.AutoLocalize.Fody)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Morris.AutoLocalize.Fody.svg)](https://www.nuget.org/packages/Morris.AutoLocalize.Fody)
 
+[[Releases]](https://github.com/mrpmorris/AutoLocalize/Docs/releases.md)
+
 AutoLocalize is a [Fody](https://github.com/Fody/Fody) weaver that fills in
 `ErrorMessageResourceType` and `ErrorMessageResourceName` for your
 `ValidationAttribute` based annotations so you only declare your resource type once
