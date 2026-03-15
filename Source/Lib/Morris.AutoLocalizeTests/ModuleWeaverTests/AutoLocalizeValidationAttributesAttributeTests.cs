@@ -268,5 +268,80 @@ public class AutoLocalizeValidationAttributesAttributeTests
 		);
 	}
 
+	[Fact]
+	public void WhenErrorMessageResourceTypeAndNameAreManuallySet_AndResourceNameExistsInSpecifiedType_ThenNoErrorIsOutput()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class OtherStrings;
+
+			public class Person
+			{
+				[Required(ErrorMessageResourceType=typeof(UnitTest.OtherStrings), ErrorMessageResourceName = "OtherStrings_Required")]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: [],
+			additionalEmbeddedResourceFiles: new Dictionary<string, IEnumerable<KeyValuePair<string, string?>>>
+			{
+				["UnitTest.OtherStrings.resources"] = [new("OtherStrings_Required", "The {0} field is required.")]
+			});
+
+		AssemblyHelper.AssertWeaverResults(
+			fodyTestResult,
+			requiredManifestEntries: ["OtherStrings_Required"],
+			requiredErrorMessages: []
+		);
+	}
+
+	[Fact]
+	public void WhenErrorMessageResourceTypeAndNameAreManuallySet_AndResourceNameDoesNotExistInSpecifiedType_ThenErrorIsOutput()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class OtherStrings;
+
+			public class Person
+			{
+				[Required(ErrorMessageResourceType=typeof(UnitTest.OtherStrings), ErrorMessageResourceName = "OtherStrings_Required")]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValuesToCreate: [],
+			additionalEmbeddedResourceFiles: new Dictionary<string, IEnumerable<KeyValuePair<string, string?>>>
+			{
+				["UnitTest.OtherStrings.resources"] = []
+			});
+
+		AssemblyHelper.AssertWeaverResults(
+			testResult: fodyTestResult,
+			requiredErrorMessages: ["Error: AutoLocalize0001: ErrorMessageResourceName \"OtherStrings_Required\" not found in resource \"UnitTest.OtherStrings\"."]
+		);
+	}
+
 }
 
