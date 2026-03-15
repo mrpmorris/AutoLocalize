@@ -16,7 +16,7 @@ internal class AssemblyHelper
 
 	public static void AssertWeaverResults(
 		Assembly assembly,
-		IEnumerable<KeyValuePair<string, bool>>? expectedManifestEntries = null,
+		IEnumerable<string>? expectedManifestEntries = null,
 		string resourceTypeName = "UnitTest.AppStrings",
 		string resourceNamePrefix = "AutoLocalize_")
 	{
@@ -27,7 +27,7 @@ internal class AssemblyHelper
 			$"Resource type \"{resourceTypeName}\" not found in assembly."
 		);
 
-		foreach (var type in assembly.GetTypes())
+		foreach (Type type in assembly.GetTypes())
 		{
 			ScanType(
 				type,

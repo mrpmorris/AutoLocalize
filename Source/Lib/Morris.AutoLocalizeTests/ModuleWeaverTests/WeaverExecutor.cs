@@ -36,6 +36,8 @@ internal static class WeaverExecutor
 		bool assertNoDiagnosticsOutput = true,
 		IEnumerable<KeyValuePair<string, string?>>? assemblyResourceValues = null)
 	{
+		assemblyResourceValues ??= [new("AutoLocalize_Required", "The {0} field is required.")];
+
 		Guid uniqueId = Guid.NewGuid();
 		SyntaxTree unitTestSyntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
 		SyntaxTree resourceClassSyntaxTree = CSharpSyntaxTree.ParseText(ResourceClassSourceCode);

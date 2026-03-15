@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Resources;
+using System.Text;
 
 namespace Morris.AutoLocalize.Fody;
 
@@ -83,7 +84,8 @@ public class ModuleWeaver : BaseModuleWeaver
 		foreach (TypeDefinition type in classesToScan)
 			ScanType(validationAttributeType, requiredResourceNames, attributeData, type);
 
-		WriteManifestFile(attributeData.ErrorMessageResourceType, requiredResourceNames);
+		EnsureRequiredResourceNamesExistInResourceFile(attributeData.ErrorMessageResourceType, requiredResourceNames);
+		WriteManifestFile(requiredResourceNames);
 	}
 
 	private void ScanType(
@@ -182,31 +184,25 @@ public class ModuleWeaver : BaseModuleWeaver
 		}
 	}
 
-	private void WriteManifestFile(TypeReference errorMessageResourceType, HashSet<string> requiredResourceNames)
+	private void EnsureRequiredResourceNamesExistInResourceFile(
+		TypeReference errorMessageResourceType,
+		IEnumerable<string> requiredResourceNames)
 	{
-		HashSet<string> actualResourceNames = GetActualResourceNamesForResourceType(errorMessageResourceType);
-
-		var manifestData =
-			requiredResourceNames
-			.Select(x =>
-				new
-				{
-					RequiredResourceName = x,
-					IsPresentInResourceFile = actualResourceNames.Contains(x)
-				}
-			)
-			.OrderBy(x => x.IsPresentInResourceFile)
-			.ThenBy(x => x.RequiredResourceName);
-
-
-		string manifestFilePath = Path.ChangeExtension(ProjectFilePath, "Morris.AutoLocalize.ValidationAttributes.csv");
-		using (var fileStream = File.Create(manifestFilePath))
+		HashSet<string> actualKeysInResourceFile = GetActualResourceNamesForResourceType(errorMessageResourceType);
+		foreach (string requiredResourceName in requiredResourceNames.OrderBy(x => x))
 		{
-			using var manifestWriter = new StreamWriter(fileStream);
-			manifestWriter.WriteLine("ErrorMessageResourceName,IsInResource");
-			foreach (var manifestDatum in manifestData)
-				manifestWriter.WriteLine($"{manifestDatum.RequiredResourceName},{(manifestDatum.IsPresentInResourceFile ? "Yes" : "No")}");
+			if (!actualKeysInResourceFile.Contains(requiredResourceName))
+				WriteError(ErrorFactory.CreateErrorMessageResourceNameNotFoundError(errorMessageResourceType, requiredResourceName));
 		}
+	}
+
+
+	private void WriteManifestFile(HashSet<string> requiredResourceNames)
+	{
+		var builder = new StringBuilder();
+		builder.AppendLine("ErrorMessageResourceName");
+		foreach (string requiredResourceName in requiredResourceNames)
+			builder.AppendLine(requiredResourceName);
 	}
 
 	private static HashSet<string> GetActualResourceNamesForResourceType(TypeReference errorMessageResourceType)

@@ -83,11 +83,12 @@ public class AutoLocalizeValidationAttributesAttributeTests
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
-			manifest: out string? manifest);
+			manifest: out string? manifest,
+			assemblyResourceValues: [new("Bob", null)]);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedManifestEntries: [new("Bob", false)]
+			expectedManifestEntries: ["Bob"]
 		);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
@@ -220,7 +221,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 			public class Person
 			{
-				[Required(ErrorMessage="You must enter a name.")]
+				[Required]
 				public string Name { get; set; }
 			}
 			""";
@@ -233,7 +234,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedManifestEntries: [ new("AutoLocalize_Required", true)]
+			expectedManifestEntries: ["AutoLocalize_Required"]
 		);
 	}
 
@@ -251,7 +252,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 			public class Person
 			{
-				[Required(ErrorMessage="You must enter a name.")]
+				[Required]
 				public string Name { get; set; }
 			}
 			""";
@@ -263,7 +264,7 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedManifestEntries: [new("AutoLocalize_Required", false)]
+			expectedManifestEntries: ["AutoLocalize_Required"]
 		);
 	}
 
