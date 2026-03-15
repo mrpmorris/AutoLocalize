@@ -81,16 +81,26 @@ public class ModuleWeaver : BaseModuleWeaver
 			.Where(x => !x.Name.StartsWith("<"));
 
 		var requiredResourceNames = new HashSet<string>(StringComparer.Ordinal);
+		var manuallyConfiguredResources = new List<(TypeReference ResourceType, string ResourceName)>();
 		foreach (TypeDefinition type in classesToScan)
-			ScanType(validationAttributeType, requiredResourceNames, attributeData, type);
+			ScanType(validationAttributeType, requiredResourceNames, manuallyConfiguredResources, attributeData, type);
 
 		EnsureRequiredResourceNamesExistInResourceFile(attributeData.ErrorMessageResourceType, requiredResourceNames);
+
+		foreach (IGrouping<string, (TypeReference ResourceType, string ResourceName)> group in manuallyConfiguredResources.GroupBy(x => x.ResourceType.FullName))
+		{
+			TypeReference resourceType = group.First().ResourceType;
+			var resourceNames = new HashSet<string>(group.Select(x => x.ResourceName), StringComparer.Ordinal);
+			EnsureRequiredResourceNamesExistInResourceFile(resourceType, resourceNames);
+		}
+
 		WriteManifestFile(requiredResourceNames);
 	}
 
 	private void ScanType(
 		TypeDefinition validationAttributeType,
 		HashSet<string> requiredResourceNames,
+		List<(TypeReference ResourceType, string ResourceName)> manuallyConfiguredResources,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		TypeDefinition type)
 	{
@@ -100,6 +110,7 @@ public class ModuleWeaver : BaseModuleWeaver
 			ScanMember(
 				validationAttributeType,
 				requiredResourceNames,
+				manuallyConfiguredResources,
 				attributeData,
 				memberDefinition
 			);
@@ -108,33 +119,47 @@ public class ModuleWeaver : BaseModuleWeaver
 	private void ScanMember(
 		TypeDefinition validationAttributeType,
 		HashSet<string> requiredResourceNames,
+		List<(TypeReference ResourceType, string ResourceName)> manuallyConfiguredResources,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		IMemberDefinition memberDefinition)
 	{
-		IEnumerable<ValidationAttributeInfo> validationAttributes =
+		var validationAttributeDataList =
 			memberDefinition
 			.CustomAttributes
 			.Where(x => x.AttributeType.IsAssignableTo(validationAttributeType))
-			.Select(x => new
-			{
-				ValidationAttribute = x,
-				AttributeValues = x.GetValues()
-			}
-			)
-			.Where(x => 
-				(!x.AttributeValues.TryGetValue("ErrorMessageResourceType", out object? resourceType) || resourceType is null)
+			.Select(x => new { Attribute = x, Values = x.GetValues() })
+			.ToList();
+
+		IEnumerable<ValidationAttributeInfo> autoConfiguredAttributes =
+			validationAttributeDataList
+			.Where(x =>
+				(!x.Values.TryGetValue("ErrorMessageResourceType", out object? resourceType) || resourceType is null)
 				&&
-				(!x.AttributeValues.TryGetValue("ErrorMessage", out object? errorMessage) || errorMessage is null)
+				(!x.Values.TryGetValue("ErrorMessage", out object? errorMessage) || errorMessage is null)
 			)
 			.Select(x =>
 				new ValidationAttributeInfo(
-					x.ValidationAttribute,
-					x.AttributeValues.TryGetValue("ErrorMessageResourceName", out object? value) ? (string?)value : null
+					x.Attribute,
+					x.Values.TryGetValue("ErrorMessageResourceName", out object? value) ? (string?)value : null
 				)
 			);
 
-		foreach (ValidationAttributeInfo validationAttribute in validationAttributes)
+		foreach (ValidationAttributeInfo validationAttribute in autoConfiguredAttributes)
 			UpdateValidationAttribute(attributeData, requiredResourceNames, validationAttribute);
+
+		foreach (var validationAttributeData in validationAttributeDataList)
+		{
+			if (!validationAttributeData.Values.TryGetValue("ErrorMessageResourceType", out object? resourceTypeObj) || resourceTypeObj is not TypeReference typeRef)
+				continue;
+
+			if (!validationAttributeData.Values.TryGetValue("ErrorMessageResourceName", out object? resourceNameObj) || resourceNameObj is not string name || string.IsNullOrEmpty(name))
+				continue;
+
+			if (validationAttributeData.Values.TryGetValue("ErrorMessage", out object? errorMessageObj) && errorMessageObj is not null)
+				continue;
+
+			manuallyConfiguredResources.Add((typeRef, name));
+		}
 	}
 
 	private void UpdateValidationAttribute(

@@ -33,7 +33,8 @@ internal static class WeaverExecutor
 		string sourceCode,
 		out Fody.TestResult testResult,
 		out string? manifest,
-		IEnumerable<KeyValuePair<string, string?>>? assemblyResourceValuesToCreate = null)
+		IEnumerable<KeyValuePair<string, string?>>? assemblyResourceValuesToCreate = null,
+		IReadOnlyDictionary<string, IEnumerable<KeyValuePair<string, string?>>>? additionalEmbeddedResourceFiles = null)
 	{
 		assemblyResourceValuesToCreate ??= [new("AutoLocalize_Required", "The {0} field is required.")];
 
@@ -59,10 +60,14 @@ internal static class WeaverExecutor
 
 		try
 		{
-			IEnumerable<ResourceDescription> manifestResources =
-			[
+			var manifestResources = new List<ResourceDescription>
+			{
 				CreateResources("UnitTest.AppStrings.resources", assemblyResourceValuesToCreate)
-			];
+			};
+
+			if (additionalEmbeddedResourceFiles is not null)
+				foreach (KeyValuePair<string, IEnumerable<KeyValuePair<string, string?>>> kvp in additionalEmbeddedResourceFiles)
+					manifestResources.Add(CreateResources(kvp.Key, kvp.Value));
 
 			EmitResult emitResult;
 			using (FileStream peStream = File.Create(assemblyFilePath))
