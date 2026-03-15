@@ -31,10 +31,10 @@ internal static class WeaverExecutor
 
 	public static void Execute(
 		string sourceCode,
-		IEnumerable<KeyValuePair<string, string?>> assemblyResourceValues,
 		out Fody.TestResult testResult,
 		out string? manifest,
-		bool assertNoDiagnosticsOutput = true)
+		bool assertNoDiagnosticsOutput = true,
+		IEnumerable<KeyValuePair<string, string?>>? assemblyResourceValues = null)
 	{
 		Guid uniqueId = Guid.NewGuid();
 		SyntaxTree unitTestSyntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
@@ -109,7 +109,7 @@ internal static class WeaverExecutor
 
 	private static ResourceDescription CreateResources(
 		string manifestResourceName,
-		IEnumerable<KeyValuePair<string, string?>> resourceValues) =>
+		IEnumerable<KeyValuePair<string, string?>>? resourceValues) =>
 		new ResourceDescription(
 			resourceName: manifestResourceName,
 			dataProvider: () =>
@@ -117,7 +117,7 @@ internal static class WeaverExecutor
 				var memoryStream = new MemoryStream();
 
 				var writer = new ResourceWriter(memoryStream);
-				foreach (KeyValuePair<string, string?> kvp in resourceValues)
+				foreach (KeyValuePair<string, string?> kvp in resourceValues ?? [])
 					writer.AddResource(kvp.Key, kvp.Value);
 				writer.Generate();
 

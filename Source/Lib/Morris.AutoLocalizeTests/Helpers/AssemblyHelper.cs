@@ -16,7 +16,7 @@ internal class AssemblyHelper
 
 	public static void AssertWeaverResults(
 		Assembly assembly,
-		IEnumerable<string> expectedManifestEntries,
+		IEnumerable<KeyValuePair<string, bool>>? expectedManifestEntries = null,
 		string resourceTypeName = "UnitTest.AppStrings",
 		string resourceNamePrefix = "AutoLocalize_")
 	{
@@ -37,18 +37,22 @@ internal class AssemblyHelper
 			);
 		}
 
-		expectedManifestEntries.GetDifferences(
-			discoveredResourceNamesHashSet,
-			additionalItems: out string[] unexpectedResourceNames,
-			missingItems: out string[] missingResourceNames
-		);
-
-		if (unexpectedResourceNames.Any() || missingResourceNames.Any())
+		if (expectedManifestEntries is not null)
 		{
-			var builder = new StringBuilder();
-			AddItems(builder, "Missing resource names", missingResourceNames);
-			AddItems(builder, "Unexpected resource names", unexpectedResourceNames);
-			Assert.Fail($"There were discrepancies in the registered resource names{Environment.NewLine}{builder}");
+			expectedManifestEntries
+				.GetDifferences(
+					discoveredResourceNamesHashSet,
+					additionalItems: out string[] unexpectedResourceNames,
+					missingItems: out string[] missingResourceNames
+				);
+
+			if (unexpectedResourceNames.Any() || missingResourceNames.Any())
+			{
+				var builder = new StringBuilder();
+				AddItems(builder, "Missing resource names", missingResourceNames);
+				AddItems(builder, "Unexpected resource names", unexpectedResourceNames);
+				Assert.Fail($"There were discrepancies in the registered resource names{Environment.NewLine}{builder}");
+			}
 		}
 
 		static void AddItems(StringBuilder builder, string title, IEnumerable<string> items)

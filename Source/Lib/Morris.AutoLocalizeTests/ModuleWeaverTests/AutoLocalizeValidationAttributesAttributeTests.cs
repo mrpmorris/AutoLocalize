@@ -27,14 +27,10 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [ new("AutoLocalize_Required", null)],
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: ["AutoLocalize_Required"]
-		);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
 	}
 
 	[Fact]
@@ -58,14 +54,10 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)],
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: ["AutoLocalize_Required"]
-		);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
 	}
 
 
@@ -90,13 +82,12 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)],
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedManifestEntries: ["Bob"]
+			expectedManifestEntries: [new("Bob", false)]
 		);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
@@ -135,14 +126,11 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)],
 			testResult: out Fody.TestResult? fodyTestResult,
-			manifest: out string? manifest);
+			manifest: out string? manifest,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
 
-		AssemblyHelper.AssertWeaverResults(
-			fodyTestResult.Assembly,
-			expectedManifestEntries: ["AutoLocalize_Required"]
-		);
+		AssemblyHelper.AssertWeaverResults(fodyTestResult.Assembly);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
 		Assert.NotNull(person);
@@ -178,7 +166,6 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)],
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
@@ -209,13 +196,74 @@ public class AutoLocalizeValidationAttributesAttributeTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [new("AutoLocalize_Required", null)],
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
+
+		AssemblyHelper.AssertWeaverResults(
+			fodyTestResult.Assembly,
+			expectedManifestEntries: []
+		);
+	}
+
+	[Fact]
+	public void WhenErrorMessageResourceNameIsInResourcesFile_ThenOutputsNameToManifest_AndIndicatesTheResourceKeyIsPresent()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class Person
+			{
+				[Required(ErrorMessage="You must enter a name.")]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
+
+		AssemblyHelper.AssertWeaverResults(
+			fodyTestResult.Assembly,
+			expectedManifestEntries: [ new("AutoLocalize_Required", true)]
+		);
+	}
+
+	[Fact]
+	public void WhenErrorMessageResourceNameIsNotInResourcesFile_ThenOutputsNameToManifest_AndIndicatesTheResourceKeyIsAbsent()
+	{
+		string sourceCode =
+			"""
+			using Morris.AutoLocalize;
+			using System.ComponentModel.DataAnnotations;
+
+			[assembly:AutoLocalizeValidationAttributes(typeof(UnitTest.AppStrings))]
+
+			namespace UnitTest;
+
+			public class Person
+			{
+				[Required(ErrorMessage="You must enter a name.")]
+				public string Name { get; set; }
+			}
+			""";
+
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
 			testResult: out Fody.TestResult? fodyTestResult,
 			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedManifestEntries: []
+			expectedManifestEntries: [new("AutoLocalize_Required", false)]
 		);
 	}
 

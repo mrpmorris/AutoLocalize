@@ -17,9 +17,9 @@ public class RemoveAutoLocalizeDependencyTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [],
 			testResult: out Fody.TestResult? fodyTestResult,
-			manifest: out string? manifest);
+			manifest: out string? manifest,
+			assemblyResourceValues: []);
 
 		bool isReferenced =
 			fodyTestResult
@@ -41,9 +41,9 @@ public class RemoveAutoLocalizeDependencyTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [ new("AutoLocalize_Required", null)],
 			testResult: out Fody.TestResult? fodyTestResult,
-			manifest: out string? manifest);
+			manifest: out string? manifest,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)]);
 
 		IEnumerable<Attribute> attributes = fodyTestResult
 			.Assembly
@@ -64,9 +64,9 @@ public class RemoveAutoLocalizeDependencyTests
 
 		WeaverExecutor.Execute(
 			sourceCode: sourceCode,
-			assemblyResourceValues: [],
 			testResult: out Fody.TestResult? fodyTestResult,
-			manifest: out string? manifest);
+			manifest: out string? manifest,
+			assemblyResourceValues: []);
 
 		bool isReferenced =
 			fodyTestResult
