@@ -115,7 +115,7 @@ on a convention.
 ## Manifest of resource keys
 
 During weaving a CSV file named after your project (e.g.
-`MyProject.Morris.AutoLocalize.ValidatorAttributes.csv`) is written next to the project file. It
+`MyProject.Morris.AutoLocalize.ValidationAttributes.csv`) is written next to the project file. It
 contains all resource keys the weaver added or discovered:
 
 ```

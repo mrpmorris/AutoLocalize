@@ -25,11 +25,15 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			assemblyResourceValues: [ new("AutoLocalize_Required", null)],
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: ["AutoLocalize_Required"]
+			expectedManifestEntries: ["AutoLocalize_Required"]
 		);
 	}
 
@@ -52,11 +56,15 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)],
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: ["AutoLocalize_Required"]
+			expectedManifestEntries: ["AutoLocalize_Required"]
 		);
 	}
 
@@ -80,11 +88,15 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)],
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: ["Bob"]
+			expectedManifestEntries: ["Bob"]
 		);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
@@ -121,11 +133,15 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)],
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: ["AutoLocalize_Required"]
+			expectedManifestEntries: ["AutoLocalize_Required"]
 		);
 
 		Type? person = fodyTestResult.Assembly.GetType("UnitTest.Person");
@@ -160,11 +176,15 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)],
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: []
+			expectedManifestEntries: []
 		);
 	}
 
@@ -187,11 +207,15 @@ public class AutoLocalizeValidationAttributesAttributeTests
 			}
 			""";
 
-		WeaverExecutor.Execute(sourceCode, out Fody.TestResult? fodyTestResult, out string? manifest);
+		WeaverExecutor.Execute(
+			sourceCode: sourceCode,
+			assemblyResourceValues: [new("AutoLocalize_Required", null)],
+			testResult: out Fody.TestResult? fodyTestResult,
+			manifest: out string? manifest);
 
 		AssemblyHelper.AssertWeaverResults(
 			fodyTestResult.Assembly,
-			expectedResourceNames: []
+			expectedManifestEntries: []
 		);
 	}
 

@@ -16,7 +16,7 @@ internal class AssemblyHelper
 
 	public static void AssertWeaverResults(
 		Assembly assembly,
-		IEnumerable<string> expectedResourceNames,
+		IEnumerable<string> expectedManifestEntries,
 		string resourceTypeName = "UnitTest.AppStrings",
 		string resourceNamePrefix = "AutoLocalize_")
 	{
@@ -37,7 +37,7 @@ internal class AssemblyHelper
 			);
 		}
 
-		expectedResourceNames.GetDifferences(
+		expectedManifestEntries.GetDifferences(
 			discoveredResourceNamesHashSet,
 			additionalItems: out string[] unexpectedResourceNames,
 			missingItems: out string[] missingResourceNames

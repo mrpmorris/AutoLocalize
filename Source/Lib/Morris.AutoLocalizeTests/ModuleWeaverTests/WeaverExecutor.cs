@@ -31,6 +31,7 @@ internal static class WeaverExecutor
 
 	public static void Execute(
 		string sourceCode,
+		IEnumerable<KeyValuePair<string, string?>> assemblyResourceValues,
 		out Fody.TestResult testResult,
 		out string? manifest,
 		bool assertNoDiagnosticsOutput = true)
@@ -59,7 +60,7 @@ internal static class WeaverExecutor
 		{
 			IEnumerable<ResourceDescription> manifestResources =
 			[
-				CreateEmptyManifestResource("UnitTest.AppStrings.resources")
+				CreateResources("UnitTest.AppStrings.resources", assemblyResourceValues)
 			];
 
 			EmitResult emitResult;
@@ -106,7 +107,9 @@ internal static class WeaverExecutor
 		}
 	}
 
-	private static ResourceDescription CreateEmptyManifestResource(string manifestResourceName) =>
+	private static ResourceDescription CreateResources(
+		string manifestResourceName,
+		IEnumerable<KeyValuePair<string, string?>> resourceValues) =>
 		new ResourceDescription(
 			resourceName: manifestResourceName,
 			dataProvider: () =>
@@ -114,6 +117,8 @@ internal static class WeaverExecutor
 				var memoryStream = new MemoryStream();
 
 				var writer = new ResourceWriter(memoryStream);
+				foreach (KeyValuePair<string, string?> kvp in resourceValues)
+					writer.AddResource(kvp.Key, kvp.Value);
 				writer.Generate();
 
 				memoryStream.Position = 0;
