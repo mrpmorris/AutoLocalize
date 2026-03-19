@@ -1,5 +1,6 @@
 ﻿using Fody;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Morris.AutoLocalize.Fody.Extensions;
 using Morris.AutoLocalize.Fody.Helpers;
 using System;
@@ -80,7 +81,7 @@ public class ModuleWeaver : BaseModuleWeaver
 			.Where(x => x.IsClass)
 			.Where(x => !x.Name.StartsWith("<"));
 
-		var requiredResourceNames = new HashSet<string>(StringComparer.Ordinal);
+		var requiredResourceNames = new Dictionary<string, SequencePoint?>(StringComparer.Ordinal);
 		foreach (TypeDefinition type in classesToScan)
 			ScanType(validationAttributeType, requiredResourceNames, attributeData, type);
 
@@ -90,7 +91,7 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	private void ScanType(
 		TypeDefinition validationAttributeType,
-		HashSet<string> requiredResourceNames,
+		Dictionary<string, SequencePoint?> requiredResourceNames,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		TypeDefinition type)
 	{
@@ -107,7 +108,7 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	private void ScanMember(
 		TypeDefinition validationAttributeType,
-		HashSet<string> requiredResourceNames,
+		Dictionary<string, SequencePoint?> requiredResourceNames,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		IMemberDefinition memberDefinition)
 	{
@@ -134,13 +135,14 @@ public class ModuleWeaver : BaseModuleWeaver
 			);
 
 		foreach (ValidationAttributeInfo validationAttribute in validationAttributes)
-			UpdateValidationAttribute(attributeData, requiredResourceNames, validationAttribute);
+			UpdateValidationAttribute(attributeData, requiredResourceNames, validationAttribute, memberDefinition);
 	}
 
 	private void UpdateValidationAttribute(
 		AutoLocalizeValidationAttributesAttributeData attributeData,
-		HashSet<string> requiredResourceNames,
-		ValidationAttributeInfo validationAttributeInfo)
+		Dictionary<string, SequencePoint?> requiredResourceNames,
+		ValidationAttributeInfo validationAttributeInfo,
+		IMemberDefinition memberDefinition)
 	{
 		string attributeTypeName = validationAttributeInfo.ValidationAttribute.AttributeType.Name;
 
@@ -162,13 +164,17 @@ public class ModuleWeaver : BaseModuleWeaver
 				)
 			);
 
+		SequencePoint? sequencePoint = GetSequencePoint(memberDefinition);
+
 		if (!string.IsNullOrEmpty(validationAttributeInfo.ErrorMessageResourceName))
 		{
-			requiredResourceNames.Add(validationAttributeInfo.ErrorMessageResourceName!);
+			if (!requiredResourceNames.ContainsKey(validationAttributeInfo.ErrorMessageResourceName!))
+				requiredResourceNames.Add(validationAttributeInfo.ErrorMessageResourceName!, sequencePoint);
 		}
 		else
 		{
-			requiredResourceNames.Add(resourceName);
+			if (!requiredResourceNames.ContainsKey(resourceName))
+				requiredResourceNames.Add(resourceName, sequencePoint);
 			validationAttributeInfo
 				.ValidationAttribute
 				.Properties
@@ -186,22 +192,28 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	private void EnsureRequiredResourceNamesExistInResourceFile(
 		TypeReference errorMessageResourceType,
-		IEnumerable<string> requiredResourceNames)
+		Dictionary<string, SequencePoint?> requiredResourceNames)
 	{
 		HashSet<string> actualKeysInResourceFile = GetActualResourceNamesForResourceType(errorMessageResourceType);
-		foreach (string requiredResourceName in requiredResourceNames.OrderBy(x => x))
+		foreach (KeyValuePair<string, SequencePoint?> kvp in requiredResourceNames.OrderBy(x => x.Key))
 		{
-			if (!actualKeysInResourceFile.Contains(requiredResourceName))
-				WriteError(ErrorFactory.CreateErrorMessageResourceNameNotFoundError(errorMessageResourceType, requiredResourceName));
+			if (!actualKeysInResourceFile.Contains(kvp.Key))
+			{
+				string message = ErrorFactory.CreateErrorMessageResourceNameNotFoundError(errorMessageResourceType, kvp.Key);
+				if (kvp.Value is not null)
+					WriteError(message, kvp.Value);
+				else
+					WriteError(message);
+			}
 		}
 	}
 
 
-	private void WriteManifestFile(HashSet<string> requiredResourceNames)
+	private void WriteManifestFile(Dictionary<string, SequencePoint?> requiredResourceNames)
 	{
 		var builder = new StringBuilder();
 		builder.AppendLine("ErrorMessageResourceName");
-		foreach (string requiredResourceName in requiredResourceNames)
+		foreach (string requiredResourceName in requiredResourceNames.Keys)
 			builder.AppendLine(requiredResourceName);
 	}
 
@@ -234,6 +246,15 @@ public class ModuleWeaver : BaseModuleWeaver
 		}
 
 		return actualResourceNames;
+	}
+
+	private static SequencePoint? GetSequencePoint(IMemberDefinition memberDefinition)
+	{
+		MethodDefinition? method = null;
+		if (memberDefinition is PropertyDefinition property)
+			method = property.GetMethod ?? property.SetMethod;
+
+		return method?.DebugInformation?.SequencePoints?.FirstOrDefault();
 	}
 
 	private void RemoveDependency()
