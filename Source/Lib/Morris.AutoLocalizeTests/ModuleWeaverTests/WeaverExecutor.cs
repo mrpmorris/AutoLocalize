@@ -55,6 +55,7 @@ internal static class WeaverExecutor
 		);
 
 		string assemblyFilePath = Path.ChangeExtension(projectFilePath, "Morris.AutoLocalize.Tests.dll");
+		string assemblyPdbFilePath = Path.ChangeExtension(assemblyFilePath, ".pdb");
 		string manifestFilePath = Path.ChangeExtension(projectFilePath, "Morris.AutoRegister.csv");
 
 		try
@@ -67,9 +68,10 @@ internal static class WeaverExecutor
 			EmitResult emitResult;
 			using (FileStream peStream = File.Create(assemblyFilePath))
 			{
+				using FileStream pdbStream = File.Create(assemblyPdbFilePath);
 				emitResult = compilation.Emit(
 					peStream: peStream,
-					pdbStream: null,
+					pdbStream: pdbStream,
 					xmlDocumentationStream: null,
 					win32Resources: null,
 					manifestResources: manifestResources,
@@ -103,12 +105,15 @@ internal static class WeaverExecutor
 		{
 			if (File.Exists(assemblyFilePath))
 				File.Delete(assemblyFilePath);
+			if (File.Exists(assemblyPdbFilePath))
+				File.Delete(assemblyPdbFilePath);
 		}
 	}
 
 	private static ResourceDescription CreateResources(
 		string manifestResourceName,
-		IEnumerable<KeyValuePair<string, string?>>? resourceValues) =>
+		IEnumerable<KeyValuePair<string, string?>>? resourceValues)
+	=>
 		new ResourceDescription(
 			resourceName: manifestResourceName,
 			dataProvider: () =>
