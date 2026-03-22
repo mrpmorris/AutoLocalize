@@ -108,7 +108,8 @@ internal static class WeaverExecutor
 
 	private static ResourceDescription CreateResources(
 		string manifestResourceName,
-		IEnumerable<KeyValuePair<string, string?>>? resourceValues) =>
+		IEnumerable<KeyValuePair<string, string?>>? resourceValues)
+	=>
 		new ResourceDescription(
 			resourceName: manifestResourceName,
 			dataProvider: () =>

@@ -1,5 +1,6 @@
 ﻿using Fody;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Morris.AutoLocalize.Fody.Extensions;
 using Morris.AutoLocalize.Fody.Helpers;
 using System;
@@ -23,12 +24,13 @@ public class ModuleWeaver : BaseModuleWeaver
 
 	public override void Execute()
 	{
+		var discoveredItems = new ErrorMessageResourceTypes();
 		AutoLocalizeValidationAttributesAttributeData? attributeData = GetValidationAttributeData();
 		if (attributeData is not null)
 		{
 			TypeDefinition? validationAttributeType = GetValidationAttributeType();
 			if (validationAttributeType is not null)
-				ProcessClasses(validationAttributeType, attributeData);
+				ProcessClasses(discoveredItems, validationAttributeType, attributeData);
 		}
 		RemoveDependency();
 	}
@@ -71,6 +73,7 @@ public class ModuleWeaver : BaseModuleWeaver
 	}
 
 	private void ProcessClasses(
+		ErrorMessageResourceTypes discoveredItems,
 		TypeDefinition validationAttributeType,
 		AutoLocalizeValidationAttributesAttributeData attributeData)
 	{
@@ -80,17 +83,20 @@ public class ModuleWeaver : BaseModuleWeaver
 			.Where(x => x.IsClass)
 			.Where(x => !x.Name.StartsWith("<"));
 
-		var requiredResourceNames = new HashSet<string>(StringComparer.Ordinal);
 		foreach (TypeDefinition type in classesToScan)
-			ScanType(validationAttributeType, requiredResourceNames, attributeData, type);
+			ScanType(
+				discoveredItems,
+				validationAttributeType,
+				attributeData,
+				type);
 
-		EnsureRequiredResourceNamesExistInResourceFile(attributeData.ErrorMessageResourceType, requiredResourceNames);
-		WriteManifestFile(requiredResourceNames);
+		EnsureRequiredResourceNamesExistInResourceFiles(discoveredItems);
+		WriteManifestFile(attributeData.ErrorMessageResourceType, discoveredItems);
 	}
 
 	private void ScanType(
+		ErrorMessageResourceTypes discoveredItems,
 		TypeDefinition validationAttributeType,
-		HashSet<string> requiredResourceNames,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		TypeDefinition type)
 	{
@@ -98,16 +104,16 @@ public class ModuleWeaver : BaseModuleWeaver
 		memberDefinitions = memberDefinitions.Where(x => !x.Name.StartsWith("<"));
 		foreach (IMemberDefinition memberDefinition in memberDefinitions)
 			ScanMember(
+				discoveredItems,
 				validationAttributeType,
-				requiredResourceNames,
 				attributeData,
 				memberDefinition
 			);
 	}
 
 	private void ScanMember(
+		ErrorMessageResourceTypes discoveredItems,
 		TypeDefinition validationAttributeType,
-		HashSet<string> requiredResourceNames,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
 		IMemberDefinition memberDefinition)
 	{
@@ -121,25 +127,30 @@ public class ModuleWeaver : BaseModuleWeaver
 				AttributeValues = x.GetValues()
 			}
 			)
-			.Where(x => 
-				(!x.AttributeValues.TryGetValue("ErrorMessageResourceType", out object? resourceType) || resourceType is null)
-				&&
+			.Where(x =>
 				(!x.AttributeValues.TryGetValue("ErrorMessage", out object? errorMessage) || errorMessage is null)
+				&& (!x.AttributeValues.TryGetValue("ErrorMessageResourceType", out object? errorMessageResourceType) || errorMessageResourceType is null)
 			)
 			.Select(x =>
 				new ValidationAttributeInfo(
 					x.ValidationAttribute,
-					x.AttributeValues.TryGetValue("ErrorMessageResourceName", out object? value) ? (string?)value : null
+					x.AttributeValues.TryGetValue("ErrorMessageResourceType", out object? type) ? (TypeReference?)type : null,
+					x.AttributeValues.TryGetValue("ErrorMessageResourceName", out object? name) ? (string?)name : null
 				)
 			);
 
 		foreach (ValidationAttributeInfo validationAttribute in validationAttributes)
-			UpdateValidationAttribute(attributeData, requiredResourceNames, validationAttribute);
+			UpdateValidationAttribute(
+				discoveredItems,
+				memberDefinition,
+				attributeData,
+				validationAttribute);
 	}
 
 	private void UpdateValidationAttribute(
+		ErrorMessageResourceTypes discoveredItems,
+		IMemberDefinition memberDefinition,
 		AutoLocalizeValidationAttributesAttributeData attributeData,
-		HashSet<string> requiredResourceNames,
 		ValidationAttributeInfo validationAttributeInfo)
 	{
 		string attributeTypeName = validationAttributeInfo.ValidationAttribute.AttributeType.Name;
@@ -162,13 +173,12 @@ public class ModuleWeaver : BaseModuleWeaver
 				)
 			);
 
-		if (!string.IsNullOrEmpty(validationAttributeInfo.ErrorMessageResourceName))
+		if (validationAttributeInfo.ErrorMessageResourceName is not null)
 		{
-			requiredResourceNames.Add(validationAttributeInfo.ErrorMessageResourceName!);
+			resourceName = validationAttributeInfo.ErrorMessageResourceName;
 		}
 		else
 		{
-			requiredResourceNames.Add(resourceName);
 			validationAttributeInfo
 				.ValidationAttribute
 				.Properties
@@ -182,27 +192,64 @@ public class ModuleWeaver : BaseModuleWeaver
 					)
 				);
 		}
+
+		UpdateDiscoveredItems(
+			discoveredItems: discoveredItems,
+			memberDefinition: memberDefinition,
+			validationAttribute: validationAttributeInfo.ValidationAttribute,
+			errorMessageResourceType: attributeData.ErrorMessageResourceType,
+			errorMessageResourceName: resourceName
+		);
 	}
 
-	private void EnsureRequiredResourceNamesExistInResourceFile(
+	private static void UpdateDiscoveredItems(
+		ErrorMessageResourceTypes discoveredItems,
+		IMemberDefinition memberDefinition,
+		CustomAttribute validationAttribute,
 		TypeReference errorMessageResourceType,
-		IEnumerable<string> requiredResourceNames)
+		string errorMessageResourceName)
 	{
-		HashSet<string> actualKeysInResourceFile = GetActualResourceNamesForResourceType(errorMessageResourceType);
-		foreach (string requiredResourceName in requiredResourceNames.OrderBy(x => x))
+		if (!discoveredItems.TryGetValue(errorMessageResourceType, out ErrorMessageResourceNames names))
 		{
-			if (!actualKeysInResourceFile.Contains(requiredResourceName))
-				WriteError(ErrorFactory.CreateErrorMessageResourceNameNotFoundError(errorMessageResourceType, requiredResourceName));
+			names = new ErrorMessageResourceNames();
+			discoveredItems.Add(errorMessageResourceType, names);
+		}
+		if (names.TryGetValue(errorMessageResourceName, out SequencePoint? sequencePoint) && sequencePoint is not null)
+			return;
+
+		sequencePoint = memberDefinition.GetSequencePoint();
+		names[errorMessageResourceName] = sequencePoint;
+	}
+
+	private void EnsureRequiredResourceNamesExistInResourceFiles(ErrorMessageResourceTypes discoveredItems)
+	{
+		foreach(KeyValuePair<TypeReference, ErrorMessageResourceNames> resourceTypeAndNames in discoveredItems)
+		{
+			HashSet<string> actualKeysInResourceFile = GetActualResourceNamesForResourceType(resourceTypeAndNames.Key);
+			foreach (KeyValuePair<string, SequencePoint?> nameAndLocation in resourceTypeAndNames.Value)
+			{
+				if (!actualKeysInResourceFile.Contains(nameAndLocation.Key))
+				{
+					string message = ErrorFactory.CreateErrorMessageResourceNameNotFoundError(resourceTypeAndNames.Key, nameAndLocation.Key);
+					WriteError(message, nameAndLocation.Value);
+				}
+			}
 		}
 	}
 
 
-	private void WriteManifestFile(HashSet<string> requiredResourceNames)
+	private void WriteManifestFile(
+		TypeReference errorMessageResourceType,
+		ErrorMessageResourceTypes discoveredItems)
 	{
 		var builder = new StringBuilder();
 		builder.AppendLine("ErrorMessageResourceName");
-		foreach (string requiredResourceName in requiredResourceNames)
-			builder.AppendLine(requiredResourceName);
+		if (discoveredItems.TryGetValue(errorMessageResourceType, out ErrorMessageResourceNames? namesAndLocations))
+		{
+			foreach (var requiredResourceName in namesAndLocations.Keys.OrderBy(x => x))
+				builder.AppendLine(requiredResourceName);
+		}
+		// TODO: Write to file
 	}
 
 	private static HashSet<string> GetActualResourceNamesForResourceType(TypeReference errorMessageResourceType)
@@ -251,11 +298,22 @@ public class ModuleWeaver : BaseModuleWeaver
 	{
 		public CustomAttribute ValidationAttribute { get; }
 		public string? ErrorMessageResourceName { get; }
+		public TypeReference? ErrorMessageResourceType { get; }
 
-		public ValidationAttributeInfo(CustomAttribute validationAttribute, string? errorMessageResourceName)
+		public ValidationAttributeInfo(
+			CustomAttribute validationAttribute,
+			TypeReference? errorMessageResourceType,
+			string? errorMessageResourceName)
 		{
 			ValidationAttribute = validationAttribute ?? throw new ArgumentNullException(nameof(validationAttribute));
 			ErrorMessageResourceName = errorMessageResourceName;
+			ErrorMessageResourceType = errorMessageResourceType;
 		}
+	}
+
+	private class ErrorMessageResourceTypes : Dictionary<TypeReference, ErrorMessageResourceNames>;
+	private class ErrorMessageResourceNames : Dictionary<string, SequencePoint?>
+	{
+		public ErrorMessageResourceNames() : base(StringComparer.OrdinalIgnoreCase) { }
 	}
 }
