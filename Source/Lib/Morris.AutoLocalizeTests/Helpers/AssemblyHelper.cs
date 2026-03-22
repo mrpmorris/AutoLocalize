@@ -57,10 +57,12 @@ internal class AssemblyHelper
 			}
 		}
 
-		requiredErrorMessages.GetDifferences(
-			comparison: testResult.Errors.Select(x => "Error: " + x.Text).Union(testResult.Warnings.Select(x => "Warning: " + x.Text)),
-			out string[] unexpectedErrorMessages,
-			out string[] missingErrorMessages);
+		requiredErrorMessages.
+			GetDifferences(
+				comparison: testResult.Errors.Select(x => "Error: " + x.Text).Union(testResult.Warnings.Select(x => "Warning: " + x.Text)),
+				out string[] unexpectedErrorMessages,
+				out string[] missingErrorMessages
+			);
 
 		if (unexpectedErrorMessages.Any() || missingErrorMessages.Any())
 		{
