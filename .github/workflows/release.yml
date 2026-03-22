@@ -16,15 +16,22 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
+      - name: Compute numeric version
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "numeric=${TAG%%-*}" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Build
-        run: dotnet build "./Source/" --configuration Release -p:Version=${{ github.event.release.tag_name }} -p:AssemblyVersion=${{ github.event.release.tag_name }} -p:FileVersion=${{ github.event.release.tag_name }}
+        run: dotnet build "./Source/" --configuration Release -p:Version=${{ github.event.release.tag_name }} -p:AssemblyVersion=${{ steps.version.outputs.numeric }} -p:FileVersion=${{ steps.version.outputs.numeric }}
 
       - name: Test
         run: dotnet test "./Source/" --no-build --configuration Release
 
       - name: Pack
         run: |
-          dotnet pack "./Source/Lib/Morris.AutoLocalize/Morris.AutoLocalize.csproj" --no-build --configuration Release -p:Version=${{ github.event.release.tag_name }} -p:AssemblyVersion=${{ github.event.release.tag_name }} -p:FileVersion=${{ github.event.release.tag_name }} -o artifacts
+          dotnet pack "./Source/Lib/Morris.AutoLocalize/Morris.AutoLocalize.csproj" --no-build --configuration Release -p:Version=${{ github.event.release.tag_name }} -p:AssemblyVersion=${{ steps.version.outputs.numeric }} -p:FileVersion=${{ steps.version.outputs.numeric }} -o artifacts
 
       - name: Push to NuGet
         run: |
