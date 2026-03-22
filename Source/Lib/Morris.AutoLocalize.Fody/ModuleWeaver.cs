@@ -242,6 +242,10 @@ public class ModuleWeaver : BaseModuleWeaver
 		TypeReference errorMessageResourceType,
 		ErrorMessageResourceTypes discoveredItems)
 	{
+		string manifestFilePath = Path.ChangeExtension(ProjectFilePath, "Morris.AutoLocalize.ValidationAttributes.csv");
+		if (File.Exists(manifestFilePath))
+			File.Delete(manifestFilePath);
+
 		var builder = new StringBuilder();
 		builder.AppendLine("ErrorMessageResourceName");
 		if (discoveredItems.TryGetValue(errorMessageResourceType, out ErrorMessageResourceNames? namesAndLocations))
@@ -249,7 +253,7 @@ public class ModuleWeaver : BaseModuleWeaver
 			foreach (var requiredResourceName in namesAndLocations.Keys.OrderBy(x => x))
 				builder.AppendLine(requiredResourceName);
 		}
-		// TODO: Write to file
+		File.WriteAllText(manifestFilePath, builder.ToString());
 	}
 
 	private static HashSet<string> GetActualResourceNamesForResourceType(TypeReference errorMessageResourceType)
